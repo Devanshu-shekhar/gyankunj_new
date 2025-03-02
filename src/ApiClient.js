@@ -538,6 +538,14 @@ const fetchAllRoutines = () => {
   return apiInstance.get(`/fetch_routines`);
 };
 
+const fetchSubstituteTeachers = (payload) => {
+  return apiInstance.post(`/fetch_substitute_teachers`, payload);
+}
+
+const assignSubstituteTeachers = (payload) => {
+  return apiInstance.post(`/assign_substitute_teachers`, payload);
+}
+
 
 export {
   //loginUser,
@@ -651,5 +659,7 @@ export {
   saveAdmissionFeesInfo,
   fetchAdmissionFeesInfo,
   fetchMetadataInfo,
-  fetchAllRoutines
+  fetchAllRoutines,
+  fetchSubstituteTeachers,
+  assignSubstituteTeachers
 };

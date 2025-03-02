@@ -8,11 +8,20 @@ import {
   DialogTitle,
   Alert,
   Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Tabs,
+  Tab,
 } from "@mui/material";
-import { evaluateLeaveApplication, getStaffLeaveApplicationsList } from "../../ApiClient";
+import { assignSubstituteTeachers, evaluateLeaveApplication, fetchSubstituteTeachers, getStaffLeaveApplicationsList } from "../../ApiClient";
 import CommonMatTable from "../../SharedComponents/CommonMatTable";
+import dayjs from "dayjs";
+import { Controller, useForm } from "react-hook-form";
 
 const TeacherStudentLeaveApplicationsList = (props) => {
+  const { handleSubmit, setValue, reset, control } = useForm();
   const userInfo = JSON.parse(localStorage.getItem("UserData"));
   const [teacherLeaves, setTeacherLeaves] = useState([]);
   const [studentLeaves, setStudentLeaves] = useState([]);
@@ -24,14 +33,36 @@ const TeacherStudentLeaveApplicationsList = (props) => {
     leaveId: null,
     isApproved: null,
   });
+  const [assignTeacherDialog, setAssignTeacherDialog] = useState({
+    open: false,
+    leave: null
+  });
+  const [substituteTeachers, setSubstituteTeachers] = useState({});
+  const [selectedDate, setSelectedDate] = useState(Object.keys(substituteTeachers)[0] || "");
+
+  const handleTabChange = (event, newValue) => {
+    setSelectedDate(newValue);
+  };
 
   useEffect(() => {
     setIsLoading(true);
     getStaffLeaveApplicationsList()
       .then((res) => {
         const leaves = res?.data?.leave_data || [];
-        setTeacherLeaves(leaves.filter((leave) => !leave.parent_id));
-        setStudentLeaves(leaves.filter((leave) => leave.parent_id));
+        const updatedLeaves = leaves.map((leave) => {
+          console.log("Processing leave:", leave);
+
+          return {
+            ...leave,
+            dateList: generateDateRange(leave.start_date, leave.end_date),
+          };
+        });
+
+        console.log("Updated Leaves:", updatedLeaves);
+
+        setTeacherLeaves(updatedLeaves.filter((leave) => !leave.parent_id));
+        setStudentLeaves(updatedLeaves.filter((leave) => leave.parent_id));
+
         setTimeout(() => {
           setIsLoading(false);
         }, 1000);
@@ -41,6 +72,21 @@ const TeacherStudentLeaveApplicationsList = (props) => {
         setIsLoading(false);
       });
   }, [refreshTable, userInfo.user_id]);
+
+  const generateDateRange = (start, end) => {
+    if (!start || !end) return [];
+
+    let dates = [];
+    let currentDate = dayjs(start);
+    const endDate = dayjs(end);
+
+    while (currentDate.isBefore(endDate) || currentDate.isSame(endDate, "day")) {
+      dates.push(currentDate.format("YYYY-MM-DD"));
+      currentDate = currentDate.add(1, "day");
+    }
+
+    return dates;
+  };
 
   const takeActionOnLeave = (leaveId, isApproved) => {
     const payload = {
@@ -76,6 +122,86 @@ const TeacherStudentLeaveApplicationsList = (props) => {
     setConfirmationDialog({ open: false, leaveId: null, isApproved: null });
   };
 
+  const openAssignTeacherDialog = (leave) => {
+    getSubstituteTeachers(leave);
+  }
+
+  const closeAssignTeacherDialog = () => {
+    setSelectedDate("");
+    setSubstituteTeachers({});
+    setAssignTeacherDialog({ open: false, leave: null });
+  }
+
+
+  const getSubstituteTeachers = async (leave) => {
+    const payload = {
+      "teacher_id": leave.user_id,
+      "leave_dates": leave.dateList || []
+    }
+    try {
+      const res = await fetchSubstituteTeachers(payload);
+      if (res?.data?.status === "success") {
+        setSubstituteTeachers(res?.data?.substitute_data);
+        if (res?.data?.substitute_data) {
+          setSelectedDate(Object.keys(res?.data?.substitute_data)[0] || "");
+        }
+        setAssignTeacherDialog({ open: true, leave });
+      }
+    }
+    catch (err) {
+      console.log(err);
+    }
+  }
+
+
+  const onSubmit = (data) => {
+    const substitutedData = [];
+    debugger;
+    Object.keys(substituteTeachers).forEach((date) => {
+      substituteTeachers[date]?.teacher_list.forEach((period) => {
+        const teacherId = data[`teacher_id_${date}_${period.period_id}`];
+        if (teacherId) {
+          substitutedData.push({
+            primary_teacher_id: assignTeacherDialog.leave.user_id,
+            substitute_teacher_id: teacherId,
+            substitution_date: date,
+            grade_id: substituteTeachers[date].grade_id,
+            subject_id: substituteTeachers[date].subject_id,
+            section_id: substituteTeachers[date].section_id,
+            period_id: period.period_id,
+            day_id: substituteTeachers[date].day_id,
+          });
+        }
+      });
+    });
+
+    const payload = { substituted_data: substitutedData };
+    console.log("Payload:", payload);
+    assignTeachers(payload);
+  };
+
+  const assignTeachers = async (payload) => {
+    try {
+      const res = await assignSubstituteTeachers(payload);
+      if (res?.data?.status === "success") {
+        setRefreshTable((prev) => !prev);
+        closeAssignTeacherDialog();
+        setShowAlert("success");
+        setTimeout(() => {
+          setShowAlert("");
+        }, 2000);
+      }
+      
+    }
+    catch (err) {
+      console.log(err);
+      setShowAlert("error");
+      setTimeout(() => {
+        setShowAlert("");
+      }, 2000);
+    }
+  }
+
   const accessorFn = (row) => {
     const getStatusClass = (status) => {
       switch (status) {
@@ -94,8 +220,18 @@ const TeacherStudentLeaveApplicationsList = (props) => {
         <div className={`fw-bold ${getStatusClass(row.status)}`}>
           {row.status}
         </div>
+        {!row.parent_id && row.status === "approved" && (
+          <Button
+          size="small"
+            variant="contained"
+            color="primary"
+            onClick={() => openAssignTeacherDialog(row)}
+          >
+            Assign
+          </Button>
+        )}
         {row.status === "pending" && (
-          <Box className="d-flex gap-2 mt-1"> 
+          <Box className="d-flex gap-2 mt-1">
             <Button
               variant="outlined"
               color="error"
@@ -199,6 +335,64 @@ const TeacherStudentLeaveApplicationsList = (props) => {
             color={confirmationDialog.isApproved ? "success" : "error"}
           >
             {confirmationDialog.isApproved ? "Approve" : "Reject"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog fullWidth open={assignTeacherDialog.open} onClose={closeAssignTeacherDialog}>
+        <DialogTitle>Assign Teacher</DialogTitle>
+        <DialogContent>
+          <Tabs
+            value={selectedDate}
+            onChange={handleTabChange}
+            indicatorColor="primary"
+            textColor="primary"
+            variant="scrollable"
+            scrollButtons="auto"
+          >
+            {Object.keys(substituteTeachers).map((date) => (
+              <Tab key={date} label={date} value={date} />
+            ))}
+          </Tabs>
+
+          <div className="mt-3">
+            {substituteTeachers[selectedDate]?.teacher_list.map((period) => (
+              <div className="d-flex gap-5 align-items-center mb-3" key={period.period_id}>
+                <div className="fs-12" style={{ width: "150px" }}>Period {period.period_id}</div>
+                <FormControl fullWidth>
+                  <Controller
+                    name={`teacher_id_${selectedDate}_${period.period_id}`}
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { onChange, value }, fieldState: { error } }) => (
+                      <>
+                        <InputLabel error={!!error}>Teacher</InputLabel>
+                        <Select
+                          label="Teacher"
+                          onChange={onChange}
+                          value={value || ""}
+                          error={!!error}
+                        >
+                          {period.available_teachers?.map((item) => (
+                            <MenuItem key={item.teacher_id} value={item.teacher_id}>
+                              {item.teacher_name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </>
+                    )}
+                  />
+                </FormControl>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="outlined" onClick={closeAssignTeacherDialog} color="primary">
+            Cancel
+          </Button>
+          <Button variant="contained" color="success" onClick={handleSubmit(onSubmit)}>
+            Save
           </Button>
         </DialogActions>
       </Dialog>
