@@ -38,11 +38,7 @@ const TeacherStudentLeaveApplicationsList = (props) => {
     leave: null
   });
   const [substituteTeachers, setSubstituteTeachers] = useState({});
-  const [selectedDate, setSelectedDate] = useState(Object.keys(substituteTeachers)[0] || "");
-
-  const handleTabChange = (event, newValue) => {
-    setSelectedDate(newValue);
-  };
+  const [selectedPeriod, setSelectedPeriod] = useState("");
 
   useEffect(() => {
     setIsLoading(true);
@@ -127,7 +123,7 @@ const TeacherStudentLeaveApplicationsList = (props) => {
   }
 
   const closeAssignTeacherDialog = () => {
-    setSelectedDate("");
+    setSelectedPeriod("");
     setSubstituteTeachers({});
     setAssignTeacherDialog({ open: false, leave: null });
   }
@@ -141,12 +137,122 @@ const TeacherStudentLeaveApplicationsList = (props) => {
     try {
       const res = await fetchSubstituteTeachers(payload);
       if (res?.data?.status === "success") {
-        setSubstituteTeachers(res?.data?.substitute_data);
-        if (res?.data?.substitute_data) {
-          setSelectedDate(Object.keys(res?.data?.substitute_data)[0] || "");
+        if (Object.keys(res?.data?.substitute_data).length > 0) {
+          setSubstituteTeachers(res.data.substitute_data);
+          const firstDate = Object.keys(res.data.substitute_data)[0];
+          const firstPeriod = res.data.substitute_data[firstDate]?.teacher_list?.[0]?.period_id;
+          setSelectedPeriod(firstDate && firstPeriod ? `${firstDate}/${firstPeriod}` : "");
         }
-        setAssignTeacherDialog({ open: true, leave });
       }
+      // else {
+      //   const substituteTeachers = {
+      //     "2025-02-25": {
+      //       "day_id": 2,
+      //       "grade_id": 3,
+      //       "section_id": 1,
+      //       "grade_name": "One",
+      //       "section_name": "A",
+      //       "teacher_list": [
+      //         {
+      //           "period_id": 10,
+      //           "available_teachers": [
+      //             {
+      //               "teacher_id": "sfs/24/01/2024",
+      //               "teacher_name": "Pragya bharti"
+      //             },
+      //             {
+      //               "teacher_id": "sfs/25/01/2024",
+      //               "teacher_name": "Puja kumari"
+      //             }
+      //           ]
+      //         }
+      //       ]
+      //     },
+      //     "2025-02-26": {
+      //       "day_id": 3,
+      //       "grade_id": 1,
+      //       "section_id": 3,
+      //       "grade_name": "Nursery",
+      //       "section_name": "C",
+      //       "teacher_list": [
+      //         {
+      //           "period_id": 9,
+      //           "available_teachers": [
+      //             {
+      //               "teacher_id": "sfs/22/01/2024",
+      //               "teacher_name": "Anup Srivastav"
+      //             }
+      //           ]
+      //         }
+      //       ]
+      //     },
+      //     "2025-03-02": {
+      //       "day_id": 7,
+      //       "grade_id": 12,
+      //       "section_id": 2,
+      //       "grade_name": "Ten",
+      //       "section_name": "B",
+      //       "teacher_list": [
+      //         {
+      //           "period_id": 9,
+      //           "available_teachers": [
+      //             {
+      //               "teacher_id": "sfs/20/01/2024",
+      //               "teacher_name": "RANI KUMARI3"
+      //             },
+      //             {
+      //               "teacher_id": "sfs/23/01/2024",
+      //               "teacher_name": "Aakash shrama"
+      //             },
+      //             {
+      //               "teacher_id": "sfs/27/01/2024",
+      //               "teacher_name": "Chanchal sen "
+      //             },
+      //             {
+      //               "teacher_id": "sfs/28/01/2024",
+      //               "teacher_name": "Miraya shahay"
+      //             }
+      //           ]
+      //         },
+      //         {
+      //           "period_id": 12,
+      //           "available_teachers": [
+      //             {
+      //               "teacher_id": "sfs/20/01/2024",
+      //               "teacher_name": "RANI KUMARI3"
+      //             },
+      //             {
+      //               "teacher_id": "sfs/23/01/2024",
+      //               "teacher_name": "Aakash shrama"
+      //             },
+      //             {
+      //               "teacher_id": "sfs/24/01/2024",
+      //               "teacher_name": "Pragya bharti"
+      //             },
+      //             {
+      //               "teacher_id": "sfs/25/01/2024",
+      //               "teacher_name": "Puja kumari"
+      //             },
+      //             {
+      //               "teacher_id": "sfs/27/01/2024",
+      //               "teacher_name": "Chanchal sen "
+      //             },
+      //             {
+      //               "teacher_id": "sfs/28/01/2024",
+      //               "teacher_name": "Miraya shahay"
+      //             }
+      //           ]
+      //         }
+      //       ]
+      //     }
+      //   }
+      //   const firstDate = Object.keys(substituteTeachers)[0];
+      //   const firstPeriod = substituteTeachers[firstDate]?.teacher_list?.[0]?.period_id;
+      //   setSelectedPeriod(firstDate && firstPeriod ? `${firstDate}/${firstPeriod}` : "");
+      //   setSubstituteTeachers(substituteTeachers);
+      // }
+
+      setAssignTeacherDialog({ open: true, leave });
     }
     catch (err) {
       console.log(err);
@@ -156,7 +262,6 @@ const TeacherStudentLeaveApplicationsList = (props) => {
 
   const onSubmit = (data) => {
     const substitutedData = [];
-    debugger;
     Object.keys(substituteTeachers).forEach((date) => {
       substituteTeachers[date]?.teacher_list.forEach((period) => {
         const teacherId = data[`teacher_id_${date}_${period.period_id}`];
@@ -191,7 +296,7 @@ const TeacherStudentLeaveApplicationsList = (props) => {
           setShowAlert("");
         }, 2000);
       }
-      
+
     }
     catch (err) {
       console.log(err);
@@ -222,7 +327,7 @@ const TeacherStudentLeaveApplicationsList = (props) => {
         </div>
         {!row.parent_id && row.status === "approved" && (
           <Button
-          size="small"
+            size="small"
             variant="contained"
             color="primary"
             onClick={() => openAssignTeacherDialog(row)}
@@ -339,59 +444,63 @@ const TeacherStudentLeaveApplicationsList = (props) => {
         </DialogActions>
       </Dialog>
 
-      <Dialog fullWidth open={assignTeacherDialog.open} onClose={closeAssignTeacherDialog}>
+      <Dialog fullWidth open={assignTeacherDialog.open}>
         <DialogTitle>Assign Teacher</DialogTitle>
         <DialogContent>
-          <Tabs
-            value={selectedDate}
-            onChange={handleTabChange}
-            indicatorColor="primary"
-            textColor="primary"
-            variant="scrollable"
-            scrollButtons="auto"
-          >
-            {Object.keys(substituteTeachers).map((date) => (
-              <Tab key={date} label={date} value={date} />
-            ))}
-          </Tabs>
+          {Object.keys(substituteTeachers).length > 0 ? (
+            Object.keys(substituteTeachers).map((date) => (
+              <React.Fragment key={date}>
+                <div>{date}</div>
+                <div className="mt-3">
+                  <Tabs
+                    value={selectedPeriod || ""}
+                    onChange={(event, newValue) => setSelectedPeriod(newValue)}
+                    indicatorColor="primary"
+                    textColor="primary"
+                    variant="scrollable"
+                    scrollButtons="auto"
+                  >
+                    {substituteTeachers[date]?.teacher_list.map((period) => (
+                      <Tab key={`${date}-${period.period_id}`} label={`Period ${period.period_id}`} value={`${date}/${period.period_id}`} />
+                    ))}
+                  </Tabs>
+                </div>
+                {substituteTeachers[date]?.teacher_list.map((period) => (
+                  (`${date}/${period.period_id}` === selectedPeriod) && (
+                    <FormControl className="mt-3" key={period.period_id} fullWidth>
+                      <Controller
+                        name={`teacher_id_${date}_${period.period_id}`}
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { onChange, value }, fieldState: { error } }) => (
+                          <>
+                            <InputLabel error={!!error}>Teacher</InputLabel>
+                            <Select label="Teacher" onChange={onChange} value={value || ""} error={!!error}>
+                              {period.available_teachers?.map((item) => (
+                                <MenuItem key={item.teacher_id} value={item.teacher_id}>
+                                  {item.teacher_name}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </>
+                        )}
+                      />
+                    </FormControl>
+                  )
+                ))}
 
-          <div className="mt-3">
-            {substituteTeachers[selectedDate]?.teacher_list.map((period) => (
-              <div className="d-flex gap-5 align-items-center mb-3" key={period.period_id}>
-                <div className="fs-12" style={{ width: "150px" }}>Period {period.period_id}</div>
-                <FormControl fullWidth>
-                  <Controller
-                    name={`teacher_id_${selectedDate}_${period.period_id}`}
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field: { onChange, value }, fieldState: { error } }) => (
-                      <>
-                        <InputLabel error={!!error}>Teacher</InputLabel>
-                        <Select
-                          label="Teacher"
-                          onChange={onChange}
-                          value={value || ""}
-                          error={!!error}
-                        >
-                          {period.available_teachers?.map((item) => (
-                            <MenuItem key={item.teacher_id} value={item.teacher_id}>
-                              {item.teacher_name}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </>
-                    )}
-                  />
-                </FormControl>
-              </div>
-            ))}
-          </div>
+                <hr />
+              </React.Fragment>
+            ))
+          ) : (
+            <div className="text-danger text-center">No substitute teachers available</div>
+          )}
         </DialogContent>
         <DialogActions>
           <Button variant="outlined" onClick={closeAssignTeacherDialog} color="primary">
             Cancel
           </Button>
-          <Button variant="contained" color="success" onClick={handleSubmit(onSubmit)}>
+          <Button disabled={Object.keys(substituteTeachers).length === 0} variant="contained" color="success" onClick={handleSubmit(onSubmit)}>
             Save
           </Button>
         </DialogActions>
