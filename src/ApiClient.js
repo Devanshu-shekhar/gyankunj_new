@@ -546,6 +546,10 @@ const assignSubstituteTeachers = (payload) => {
   return apiInstance.post(`/assign_substitute_teachers`, payload);
 }
 
+const makeAdmissionFeePayment = (payload) => {
+  return apiInstance.post(`/make_admission_fee_payment`, payload);
+};
+
 
 export {
   //loginUser,
@@ -661,5 +665,6 @@ export {
   fetchMetadataInfo,
   fetchAllRoutines,
   fetchSubstituteTeachers,
-  assignSubstituteTeachers
+  assignSubstituteTeachers,
+  makeAdmissionFeePayment
 };
