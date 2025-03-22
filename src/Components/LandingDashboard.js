@@ -276,10 +276,6 @@ const LandingDashboard = ({ mainContainer }) => {
       >
         <UserBasicDetailsForm />
       </div>
-      <div className="d-flex flex-column flex-lg-row justify-content-around align-items-center px-3">
-        <JDoodleCompiler />
-      </div>
-
       <div
         className="text-white text-center p-4"
         style={{ background: "#252641" }}
