@@ -22,8 +22,6 @@ import {
 import AttendanceToggle from "../AttendanceToggle";
 import { useMemo } from "react";
 import TeacherStudentLeaveApplicationsList from "./TeacherStudentLeaveApplicationsList";
-import { Button } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
 
 const PDashboard = () => {
   const userInfo = useMemo(
@@ -110,20 +108,11 @@ const PDashboard = () => {
     setTeacherFilter(e.target.value);
   };
 
-  const navigate = useNavigate();
-
   return (
     <>
       { userInfo.role === "PRINCIPAL" && 
         <div className="mb-3"><AttendanceToggle /></div>
       }
-       <Button
-        variant="primary"
-        onClick={() => navigate("/online-code-compiler")}
-        className="mb-3"
-      >
-        Online Code Compiler
-      </Button>
       <Grid container spacing={3}>
         <Grid item xs={12} md={9}>
           <div className="border p-3 rounded mb-5 shadow-sm">
