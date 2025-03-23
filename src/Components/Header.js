@@ -159,6 +159,12 @@ function Header({ isTabScreen, userData }) {
               <NavDropdown.Item disabled>{userData.role}</NavDropdown.Item>
               <NavDropdown.Divider />
               <NavDropdown.Item onClick={goToProfile}>Profile</NavDropdown.Item>
+              {userData.role !== 'PARENT' && (
+                <>
+                  <NavDropdown.Divider />
+                  <NavDropdown.Item onClick={() => navigate("/online-code-compiler")}>Online Code Compiler</NavDropdown.Item>
+                </>
+              )}
               <NavDropdown.Divider />
               <NavDropdown.Item onClick={logoutFunction}>
                 Logout

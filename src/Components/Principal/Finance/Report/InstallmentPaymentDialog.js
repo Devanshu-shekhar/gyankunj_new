@@ -129,7 +129,7 @@ const InstallmentPaymentDialog = ({ open, onClose, feesData, paymentModes }) => 
                                 />
                             </FormControl>
                         </Grid>
-                        {feesData?.installments?.length > 0 && (
+                        {feesData.is_deposit_paid && feesData?.installments?.length > 0 && (
                             <Grid item xs={12}>
                                 <FormControl fullWidth margin="dense">
                                     <InputLabel>Select Installment</InputLabel>

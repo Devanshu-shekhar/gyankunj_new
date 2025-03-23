@@ -12,4 +12,36 @@ code {
     monospace;
 }
 
+/* Prevent body scrolling */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
+}
+
+/* Center iframe container */
+.compiler-wrapper {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+}
+
+/* Ensure iframe fills the screen without scroll */
+.iframe-container {
+  width: 100%;
+  height: 90vh; /* Adjust height */
+  max-width: 1200px;
+}
+
+.iframe-container iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  overflow: hidden; /* Hide iframe scrolling */
+}
 

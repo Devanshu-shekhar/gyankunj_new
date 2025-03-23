@@ -10,7 +10,8 @@ import Gyankoonj_logo from "../Images/Gyankoonj_logo.png";
 import { Button, Fab } from "@mui/material";
 import UserBasicDetailsForm from "./UserBasicDetailsForm";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import JDoodleExecutor from "./JDoodleExecutor";
+import JDoodleExecutor from "./JDoodleCompiler";
+import JDoodleCompiler from "./JDoodleCompiler";
 
 const LandingDashboard = ({ mainContainer }) => {
   const featureSectionRef = useRef(null);
@@ -275,10 +276,6 @@ const LandingDashboard = ({ mainContainer }) => {
       >
         <UserBasicDetailsForm />
       </div>
-      {/* <div className="d-flex flex-column flex-lg-row justify-content-around align-items-center px-3">
-        <JDoodleExecutor />
-      </div> */}
-
       <div
         className="text-white text-center p-4"
         style={{ background: "#252641" }}
