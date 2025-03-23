@@ -239,7 +239,7 @@ const CreateAdmission = ({
      
     const payload = {
       ...data,
-      total_emi_amount: data.is_emi_enabled ? data.total_emi_amount : undefined,
+      total_outstanding: data.is_emi_enabled ? data.total_emi_amount + data.deposited_fees : undefined,
       first_installment_due_date: data.is_emi_enabled ? formattedStartDate : undefined,
       number_of_installments: data.is_emi_enabled ? data.number_of_installments : undefined,
       installment_amount: data.is_emi_enabled ? data.installment_amount : undefined,

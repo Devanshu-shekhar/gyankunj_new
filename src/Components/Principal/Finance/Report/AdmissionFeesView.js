@@ -57,10 +57,10 @@ const AdmissionFeesView = () => {
         () => [
             { accessorKey: "user_id", header: "User ID" },
             { accessorKey: "user_name", header: "Student Name" },
-            { accessorKey: "parent_id", header: "Parent ID" },
+            { accessorKey: "parent_name", header: "Parent Name" },
             { accessorKey: "total_admission_charge", header: "Total Charge" },
             { accessorKey: "deposited_fees", header: "Deposited Fees" },
-            { accessorKey: "total_installment_due", header: "Total Due" },
+            { accessorKey: "total_installment_due", header: "Total Installment Due" },
             { accessorKey: "number_of_installments", header: "Installments" },
             { accessorKey: "installment_amount", header: "Installment Amount" },
             {

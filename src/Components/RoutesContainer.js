@@ -51,6 +51,7 @@ import EmployeeLeavesList from "./Principal/HRMS/EmployeeLeavesList";
 import FinanceView from "./Principal/Finance/FinanceView";
 import AdmissionView from "./Principal/Admission/AdmissionView";
 import OnlineCodeCompiler from "./OnlineCodeCompiler";
+import JDoodleCompiler from "./JDoodleCompiler";
 
 // Define routes for different user roles
 const roleRoutes = {
@@ -301,7 +302,7 @@ export default function RoutesContainer({ userData, mainContainerRef }) {
         />
         <Route
           path="/online-code-compiler"
-          element={<ProtectedWrapper Component={OnlineCodeCompiler} />}
+          element={<ProtectedWrapper Component={JDoodleCompiler} />}
         />
         {/* 404 Route */}
         <Route
