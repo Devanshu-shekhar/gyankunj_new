@@ -10,6 +10,7 @@ import {
 import { studentAssignmentList } from "../../../ApiClient";
 import AssignmentSheet from "./StartAssignment";
 import dayjs from "dayjs";
+import BackButton from "../../../SharedComponents/BackButton";
 
 const StudentAssigments = () => {
   const [showAssignmentSheet, setShowAssignmentSheet] = useState(false);
@@ -62,7 +63,9 @@ const StudentAssigments = () => {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <Row style={{ marginBottom: "20px" }}>
+    <>
+      <BackButton />
+      <Row style={{ margin: "20px 0px" }}>
       <div className="assignmentTabData">
         <Row
           style={{
@@ -228,6 +231,8 @@ const StudentAssigments = () => {
         </Row>
       </div>
     </Row>
+    </>
+    
   );
 };
 

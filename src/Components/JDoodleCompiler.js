@@ -16,6 +16,7 @@ import "codemirror/mode/r/r";
 //import "codemirror/mode/bash/bash";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import BackButton from "../SharedComponents/BackButton";
 
 const JDoodleCompiler = () => {
   const [code, setCode] = useState("// Write your code here");
@@ -58,6 +59,7 @@ const JDoodleCompiler = () => {
 
   return (
     <div className="container my-4">
+      <BackButton />
       <h2 className="text-center mb-4">Online Code Compiler {language}</h2>
 
       <div className="row">

@@ -55,7 +55,7 @@ function App() {
         <Header isTabScreen={isTabScreen} userData={userData} />
       </div>
       <div className="main-body">
-        {userData.role !== 'PARENT' && !isTabScreen && userData?.token && !isPageNotFound && (
+        {!["PARENT", "STUDENT"].includes(userData.role) && !isTabScreen && userData?.token && !isPageNotFound && (
           <div className={`main-sidebar ${isCollapsed && "side-small"} `}>
             <SidebarContainer
               userData={userData}
@@ -67,7 +67,7 @@ function App() {
         <div
           ref={mainContainerRef}
           className={`main-container ${
-            (userData.role === 'PARENT' || isTabScreen || !userData?.token || isPageNotFound) && "w-100"
+            (["PARENT", "STUDENT"].includes(userData.role) || isTabScreen || !userData?.token || isPageNotFound) && "w-100"
           } ${isCollapsed && "cont-big"} ${!userData?.token && 'p-0'}`}
         >
           <RoutesContainer userData={userData} mainContainerRef={mainContainerRef} />
