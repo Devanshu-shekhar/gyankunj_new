@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import bookCover from "../../../Images/book-cover-placeholder.png";
 import ViewBookChepters from "./ViewBookChepters";
+import BackButton from "../../../SharedComponents/BackButton";
 
 const SResources = ({ title = "Resources" }) => {
   const userInfo = JSON.parse(localStorage.getItem("UserData"));
@@ -91,6 +92,9 @@ const SResources = ({ title = "Resources" }) => {
 
   return (
     <>
+      <div className="mb-3">
+      <BackButton />
+      </div>
       <FiltersView />
       <CardList />
       {open && (

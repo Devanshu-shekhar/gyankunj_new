@@ -78,7 +78,7 @@ const ResponsiveCard = ({ image, title, description, route, report }) => {
   return (
     <Card style={{ height: "100%" }}>
       <CardMedia
-        className="object-fit-cover"
+        className="object-fit-contain"
         component="img"
         alt={title}
         height="140"
@@ -124,13 +124,6 @@ const ResponsiveCard = ({ image, title, description, route, report }) => {
 };
 
 const PaDashboard = () => {
-  const studentReport = {
-    subject_id: 1,
-    total_assignments: 8,
-    total_marks: 111.0,
-    total_marks_received: 100.0,
-    total_time_taken: 300130.444,
-  };
   
   return (
     <Container>

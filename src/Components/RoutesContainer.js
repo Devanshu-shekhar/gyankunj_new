@@ -52,6 +52,10 @@ import FinanceView from "./Principal/Finance/FinanceView";
 import AdmissionView from "./Principal/Admission/AdmissionView";
 import OnlineCodeCompiler from "./OnlineCodeCompiler";
 import JDoodleCompiler from "./JDoodleCompiler";
+import StudentRoutine from "./Student/StudentRoutine";
+import RoboticsLabView from "./Student/Robotics/RoboticsLabView";
+import LanguageLabView from "./Student/LanguageLab/LanguageLabView";
+import SchoolDiaryView from "./Student/SchoolDiary/SchoolDiaryView";
 
 // Define routes for different user roles
 const roleRoutes = {
@@ -238,8 +242,24 @@ export default function RoutesContainer({ userData, mainContainerRef }) {
               element={<ProtectedWrapper Component={StudentAssigments} />}
             />
             <Route
+              path="/studentDashboard/routine"
+              element={<ProtectedWrapper Component={StudentRoutine} />}
+            />
+            <Route
               path="/studentDashboard/resources"
               element={<ProtectedWrapper Component={SResources} />}
+            />
+            <Route
+              path="/studentDashboard/roboticsLab"
+              element={<ProtectedWrapper Component={RoboticsLabView} />}
+            />
+            <Route
+              path="/studentDashboard/languageLab"
+              element={<ProtectedWrapper Component={LanguageLabView} />}
+            />
+            <Route
+              path="/studentDashboard/schoolDiary"
+              element={<ProtectedWrapper Component={SchoolDiaryView} />}
             />
             <Route
               path="/studentDashboard/announcements"
@@ -301,7 +321,7 @@ export default function RoutesContainer({ userData, mainContainerRef }) {
           element={<ProtectedWrapper Component={ProfilePage} />}
         />
         <Route
-          path="/online-code-compiler"
+          path="/onlineCoding"
           element={<ProtectedWrapper Component={JDoodleCompiler} />}
         />
         {/* 404 Route */}
