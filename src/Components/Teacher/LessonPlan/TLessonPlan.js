@@ -173,7 +173,8 @@ const CustomDetailPanel = ({ row }) => {
             setRowData(res.data.lesson_plan_data[0]);
             const endDateObj = new Date(res.data.lesson_plan_data[0]?.end_date);
             const currentDate = new Date();
-            setIsCompleteActionVissible(endDateObj <= currentDate);
+            const verified = res.data.lesson_plan_data[0]?.verified;
+            setIsCompleteActionVissible(verified && endDateObj <= currentDate);
           }
         })
         .catch((err) => console.log("Lesson err - ", err));
@@ -258,13 +259,13 @@ const CustomDetailPanel = ({ row }) => {
               color="primary"
               onClick={handleMarkLessonClick}
             >
-              Complete lesson
+              Completed lesson
             </Button>
           </CardActions>
         )}
       </Card>
       <Dialog open={isMarkLessonDialogOpen}>
-        <DialogTitle>Complete Lesson</DialogTitle>
+        <DialogTitle>Completed Lesson</DialogTitle>
         <DialogContent>
           <DialogContentText>
             Are you sure you want to complete this lesson?

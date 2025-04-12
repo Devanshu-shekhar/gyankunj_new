@@ -114,7 +114,7 @@ const PaFeedback = (props) => {
         <div className={`fw-bold ${getStatusClass(row.status)}`}>
           {row.status}
         </div>
-        {row.status !== "withdrawn" && (
+        {userInfo.role !== "STUDENT" && row.status !== "approved" && row.status !== "rejected" && row.status !== "withdrawn" && (
           <Button
             variant="outlined"
             color="error"
@@ -140,11 +140,13 @@ const PaFeedback = (props) => {
         }}
       >
         {!props.isComingFromProfile && <BackButton />}
-        <Box className="d-flex justify-content-end gap-2">
-          <Button className="py-3" onClick={handleAddLeave} variant="contained">
-            <AddIcon /> Apply Leave
-          </Button>
-        </Box>
+        {userInfo.role !== "STUDENT" && (
+          <Box className="d-flex justify-content-end gap-2">
+            <Button className="py-3" onClick={handleAddLeave} variant="contained">
+              <AddIcon /> Apply Leave
+            </Button>
+          </Box>
+        )}
       </Box>
     );
   };
