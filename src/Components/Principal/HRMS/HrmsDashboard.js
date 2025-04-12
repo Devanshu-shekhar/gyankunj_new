@@ -15,6 +15,7 @@ import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined";
 import { getAllHrmsDashboardData } from "../../../ApiClient";
 import { useNavigate } from "react-router-dom";
 import AttendanceReview from "./AttendanceReview";
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 // Reusable card component for stats
 const StatCard = ({ title, value, icon, bgColor, onClick }) => (
@@ -127,6 +128,10 @@ const HrmsDashboard = () => {
     alert("You clicked Happiness Rate Card!"); // Perform an action for "Happiness Rate"
   };
 
+  const handleAttendanceViewClick = () => {
+    navigate('/principalDashboard/hrmsPortal/attendanceView');
+  }
+
   return (
     <Box>
       {/* Header */}
@@ -179,9 +184,12 @@ const HrmsDashboard = () => {
         {/* Attendance Overview */}
         <Grid item xs={12} md={6}>
           <Card className="rounded-4 shaped p-3">
-            <Typography variant="h6" mb={2} className="fw-bold">
-              Attendance Overview
-            </Typography>
+            <Box className="d-flex justify-content-between align-items-centr">
+              <Typography variant="h6" className="fw-bold">
+                Attendance Overview
+              </Typography>
+              <Button variant="outlined" startIcon={<VisibilityIcon />} onClick={handleAttendanceViewClick}>View</Button>
+            </Box>
             <CardContent>
               {attendanceData ? <Bar data={attendanceData} /> : <Typography>No attendance data available</Typography>}
             </CardContent>
