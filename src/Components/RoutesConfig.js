@@ -175,6 +175,12 @@ export const routesConfig = {
       icon: <AssignmentOutlinedIcon />,
       route: "/teacherDashboard/reports",
     },
+    {
+      code: "onlineCoding",
+      title: "Online Coding",
+      icon: <AssignmentOutlinedIcon />,
+      route: "/onlineCoding",
+    },
   ],
   STUDENT: [
     {

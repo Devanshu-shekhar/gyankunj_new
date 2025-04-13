@@ -50,7 +50,6 @@ import EmployeesList from "./Principal/HRMS/EmployeesList";
 import EmployeeLeavesList from "./Principal/HRMS/EmployeeLeavesList";
 import FinanceView from "./Principal/Finance/FinanceView";
 import AdmissionView from "./Principal/Admission/AdmissionView";
-import OnlineCodeCompiler from "./OnlineCodeCompiler";
 import JDoodleCompiler from "./JDoodleCompiler";
 import StudentRoutine from "./Student/StudentRoutine";
 import RoboticsLabView from "./Student/Robotics/RoboticsLabView";
