@@ -31,6 +31,7 @@
     "countries-list": "^3.1.1",
     "dayjs": "^1.11.10",
     "express": "^4.21.2",
+    "jspdf": "^3.0.1",
     "material-react-table": "^2.12.1",
     "postcss": "^8.4.27",
     "react": "^18.2.0",

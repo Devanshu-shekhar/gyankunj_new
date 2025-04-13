@@ -5,6 +5,7 @@ import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { getGradeDetails, viewAttendanceReport } from "../../../ApiClient";
 import TeacherAttendanceTable from "../Attendance/TeacherAttendanceTable";
 import BackButton from "../../../SharedComponents/BackButton";
+import DownloadAttendancePDF from "./DownloadAttendancePDF";
 
 const EmployeeAttendanceView = () => {
     const [attendanceData, setAttendanceData] = useState([]);
@@ -103,6 +104,7 @@ const EmployeeAttendanceView = () => {
                             ))}
                     </Select>
                 </FormControl>
+                <DownloadAttendancePDF staffAttendanceData={attendanceData} />
             </Box>
             <TeacherAttendanceTable data={attendanceData} isLoading={isLoading} />
         </>
