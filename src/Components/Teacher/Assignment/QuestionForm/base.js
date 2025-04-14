@@ -8,7 +8,7 @@ import "./index.css";
 
 const BaseQuestion = (props) => {
   const [questionName, setQuestionName] = useState("");
-  const [marks, setMarks] = useState("");
+  const [marks, setMarks] = useState(0);
   const [type, setType] = useState("");
   const [validated] = useState(false);
   const [other, setOther] = useState(true);
@@ -25,7 +25,7 @@ const BaseQuestion = (props) => {
   const handleShow = () => {
     setData({
       question: "",
-      marks: "",
+      marks: 0,
       correct_answer: "",
       options: [{ id: uuid(), value: "", trigger: false }],
     });
@@ -33,7 +33,7 @@ const BaseQuestion = (props) => {
   };
   const [data, setData] = useState({
     question: "",
-    marks: "",
+    marks: 0,
     correct_answer: "",
     options: [{ id: uuid(), value: "", trigger: false }],
   });
@@ -42,7 +42,7 @@ const BaseQuestion = (props) => {
 
   const setDataToInitial = () => {
     setQuestionName("");
-    setMarks("");
+    setMarks(0);
     setType("");
     setIsQuestionIncomplete(false);
     setIsQuestionValid(true);
@@ -53,7 +53,7 @@ const BaseQuestion = (props) => {
     setShowQuestionModal(false);
     setData({
       question: "",
-      marks: "",
+      marks: 0,
       correct_answer: "",
       options: [{ id: uuid(), value: "", trigger: false }],
     });
@@ -185,13 +185,13 @@ const BaseQuestion = (props) => {
     });
   };
   const handleCancel = () => {
-    setMarks("");
+    setMarks(0);
     setQuestionName("");
     setType("");
     setData({
       question: "",
       type: "",
-      marks: "",
+      marks: 0,
       correct_answer: "",
       options: [{ id: uuid(), value: "", trigger: false }],
     });
@@ -313,8 +313,8 @@ const BaseQuestion = (props) => {
                       <Form.Group className="mb-3" controlId="marks">
                         <Form.Label>Marks</Form.Label>
                         <Form.Control
-                          type="text"
-                          placeholder="Enter Marks..."
+                          type="number"
+                          min="0"
                           size="sm"
                           className="inputmarks"
                           required

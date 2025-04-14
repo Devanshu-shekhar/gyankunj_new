@@ -64,7 +64,7 @@ const ProfilePage = () => {
     { label: "Date of Birth", value: userDetails?.date_of_birth },
     { label: "Date of Joining", value: userDetails?.date_of_joining },
     { label: "Gender", value: userDetails?.gender },
-    { label: "Designation", value: roleNameById[userDetails?.role_id] },
+    { label: "Designation", value: roleNameById[roleId] },
     { label: "Active", value: userDetails?.is_active ? "Yes" : "No" },
     { label: "Married", value: userDetails?.is_married ? "Yes" : "No" },
     { label: "Spouse's Name", value: userDetails?.spouse_name },
@@ -109,10 +109,7 @@ const ProfilePage = () => {
           )}
         </CardContent>
       </Card>
-      {roleNameById[userDetails.role_id] !== "Parent" &&
-        roleNameById[userDetails.role_id] !== "Student" && (
-          <PaFeedback isComingFromProfile={true} />
-        )}
+      <PaFeedback isComingFromProfile={true} />  
     </>
   );
 };
