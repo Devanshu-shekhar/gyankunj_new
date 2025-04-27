@@ -8,7 +8,7 @@ import BackButton from "../../../SharedComponents/BackButton";
 import DownloadAttendancePDF from "./DownloadAttendancePDF";
 import dayjs from "dayjs";
 
-const EmployeeAttendanceView = () => {
+const EmployeeAttendanceView = ({userId}) => {
     const [attendanceData, setAttendanceData] = useState([]);
     const [monthsList, setMonthsList] = useState([]);
     const [monthFilter, setMonthFilter] = useState(dayjs().format("M"));
@@ -25,7 +25,7 @@ const EmployeeAttendanceView = () => {
                 setAttendanceData([]);
 
                 try {
-                    const res = await viewStaffAttendanceReport(monthFilter);
+                    const res = await viewStaffAttendanceReport(monthFilter, userId);
                     if (res?.data?.attendance_report?.attendance_data?.length > 0) {
                         setAttendanceData(res.data.attendance_report.attendance_data);
                     }
@@ -54,7 +54,7 @@ const EmployeeAttendanceView = () => {
 
     return (
         <>
-            <BackButton />
+        {!userId && <BackButton />}
             <Box
                 sx={{
                     display: "flex",
@@ -82,7 +82,7 @@ const EmployeeAttendanceView = () => {
                             ))}
                         </Select>
                     </FormControl>
-                    <DownloadAttendancePDF staffAttendanceData={attendanceData} />
+                    {!userId && <DownloadAttendancePDF staffAttendanceData={attendanceData} />}
                 </div>
             </Box>
             <TeacherAttendanceTable data={attendanceData} isLoading={isLoading} />
