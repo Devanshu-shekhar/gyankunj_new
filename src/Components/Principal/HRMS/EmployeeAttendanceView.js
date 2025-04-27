@@ -2,42 +2,32 @@ import * as React from "react";
 import Box from "@mui/material/Box";
 import { useState, useEffect } from "react";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
-import { getGradeDetails, viewAttendanceReport } from "../../../ApiClient";
+import { viewStaffAttendanceReport } from "../../../ApiClient";
 import TeacherAttendanceTable from "../Attendance/TeacherAttendanceTable";
 import BackButton from "../../../SharedComponents/BackButton";
 import DownloadAttendancePDF from "./DownloadAttendancePDF";
+import dayjs from "dayjs";
 
-const EmployeeAttendanceView = () => {
+const EmployeeAttendanceView = ({userId}) => {
     const [attendanceData, setAttendanceData] = useState([]);
-    const [gradeData, setGradeData] = useState([]);
-    const [gradeFilter, setGradeFilter] = useState("");
-    const [sectionFilter, setSectionFilter] = useState("");
+    const [monthsList, setMonthsList] = useState([]);
+    const [monthFilter, setMonthFilter] = useState(dayjs().format("M"));
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        const fetchGradeDetails = async () => {
-            try {
-                const res = await getGradeDetails();
-                if (res?.data?.grade_details?.grade_details) {
-                    setGradeData(res.data.grade_details.grade_details);
-                }
-            } catch (err) {
-                console.log(err);
-            }
-        };
-        fetchGradeDetails();
+        getMonthsList();
     }, []);
 
     useEffect(() => {
         const fetchAttendanceReport = async () => {
-            if (gradeFilter && sectionFilter) {
+            if (monthFilter) {
                 setIsLoading(true);
                 setAttendanceData([]);
 
                 try {
-                    const res = await viewAttendanceReport(gradeFilter, sectionFilter, "teacher");
-                    if (res?.data?.teacher_report?.attendance_data?.length > 0) {
-                        setAttendanceData(res.data.teacher_report.attendance_data);
+                    const res = await viewStaffAttendanceReport(monthFilter, userId);
+                    if (res?.data?.attendance_report?.attendance_data?.length > 0) {
+                        setAttendanceData(res.data.attendance_report.attendance_data);
                     }
                 } catch (err) {
                     console.log(err);
@@ -48,63 +38,52 @@ const EmployeeAttendanceView = () => {
         };
 
         fetchAttendanceReport();
-    }, [gradeFilter, sectionFilter]);
+    }, [monthFilter]);
 
-    const handleGradeChange = (event) => {
-        setGradeFilter(event.target.value);
-        setSectionFilter("");
+    const getMonthsList = () => {
+        const monthList = Array.from({ length: 12 }, (v, i) => ({
+            value: (i + 1).toString(),
+            label: dayjs().month(i).format("MMMM"),
+        }));
+        setMonthsList(monthList);
     };
 
-    const handleSectionChange = (event) => {
-        setSectionFilter(event.target.value);
+    const handleMonthChange = (event) => {
+        setMonthFilter(event.target.value);
     };
 
     return (
         <>
-        <BackButton />
+        {!userId && <BackButton />}
             <Box
                 sx={{
                     display: "flex",
                     alignItems: "center",
+                    justifyContent: "space-between",
                     gap: 2,
                     marginY: 2,
                 }}
             >
-                <h4 className="mb-3" style={{ width: "calc(100%/3)" }}>
+                <h4 className="mb-3 w-100">
                     Attendance Overview
                 </h4>
-                <FormControl fullWidth sx={{ width: "calc(100%/3)" }}>
-                    <InputLabel id="grade-filter-label">Grade</InputLabel>
-                    <Select
-                        labelId="grade-filter-label"
-                        value={gradeFilter || ""}
-                        onChange={handleGradeChange}
-                    >
-                        {gradeData.map((item) => (
-                            <MenuItem key={item.grade_id} value={item.grade_id}>
-                                {item.grade}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-                <FormControl fullWidth sx={{ width: "calc(100%/3)" }}>
-                    <InputLabel id="section-filter-label">Section</InputLabel>
-                    <Select
-                        labelId="section-filter-label"
-                        value={sectionFilter}
-                        onChange={handleSectionChange}
-                        disabled={!gradeFilter}
-                    >
-                        {gradeData
-                            .find((grade) => grade.grade_id === gradeFilter)
-                            ?.section_list.map((section) => (
-                                <MenuItem key={section.section_id} value={section.section_id}>
-                                    {section.section_name}
+                <div className="d-flex gap-4 w-100">
+                    <FormControl fullWidth>
+                        <InputLabel>Month</InputLabel>
+                        <Select
+                            label="Month"
+                            value={monthFilter}
+                            onChange={handleMonthChange}
+                        >
+                            {monthsList.map((item) => (
+                                <MenuItem key={item.value} value={item.value}>
+                                    {item.label}
                                 </MenuItem>
                             ))}
-                    </Select>
-                </FormControl>
-                <DownloadAttendancePDF staffAttendanceData={attendanceData} />
+                        </Select>
+                    </FormControl>
+                    {!userId && <DownloadAttendancePDF staffAttendanceData={attendanceData} />}
+                </div>
             </Box>
             <TeacherAttendanceTable data={attendanceData} isLoading={isLoading} />
         </>

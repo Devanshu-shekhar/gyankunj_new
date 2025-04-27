@@ -2,7 +2,7 @@ import * as React from "react";
 import Box from "@mui/material/Box";
 import { useState, useEffect } from "react";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
-import { getGradeDetails, viewAttendanceReport } from "../../../ApiClient";
+import { getGradeDetails, viewStudentAttendanceReport } from "../../../ApiClient";
 import StudentAttendanceTable from "./StudentAttendanceTable";
 
 const AttendancesOverview = () => {
@@ -35,14 +35,14 @@ const AttendancesOverview = () => {
         setAttendanceData([]);
   
         try {
-          const res = await viewAttendanceReport(gradeFilter, sectionFilter, "student");
+          const res = await viewStudentAttendanceReport(gradeFilter, sectionFilter);
   
           if (res.data.class_teacher_name) {
             setClassTeacher(res.data.class_teacher_name);
           }
   
-          if (res?.data?.student_report?.attendance_data?.length > 0) {
-            setAttendanceData(res.data.student_report.attendance_data);
+          if (res?.data?.attendance_report?.attendance_data?.length > 0) {
+            setAttendanceData(res.data.attendance_report.attendance_data);
           }
         } catch (err) {
           console.log(err);

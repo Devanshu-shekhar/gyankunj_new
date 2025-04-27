@@ -11,6 +11,7 @@ import { useParams } from "react-router-dom";
 import { getUsersList } from "../ApiClient";
 import PaFeedback from "./Parent/PaFeedback";
 import BackButton from "../SharedComponents/BackButton";
+import EmployeeAttendanceView from "./Principal/HRMS/EmployeeAttendanceView";
 
 const ProfileInfoField = ({ label, value }) => (
   <Grid item xs={12} md={6} display="flex" justifyContent="space-between">
@@ -110,6 +111,10 @@ const ProfilePage = () => {
         </CardContent>
       </Card>
       <PaFeedback isComingFromProfile={true} />  
+      
+      {!["Parent", "Student"].includes(roleNameById[roleId]) &&
+        <div className="mt-5"><EmployeeAttendanceView userId={userId} /></div>
+      }
     </>
   );
 };
