@@ -35,20 +35,39 @@ const TeacherAttendanceTable = ({ data, isLoading }) => {
   const columns = useMemo(
     () => [
       {
-        accessorKey: "teacher_id",
-        header: "Emp ID",
-      },
-      {
-        accessorKey: "teacher_name",
+        accessorKey: "name",
         header: "Name",
+        accessorFn: (row) => (
+          <div>{row.user_id} - {row.name}</div>
+        ),
+        size: 300
       },
       {
-        accessorKey: "present_days",
-        header: "No. of days present",
+        accessorKey: "total_present",
+        header: "No. of Days Present",
       },
       {
-        accessorKey: "absence_count",
-        header: "No. of days absent",
+        accessorKey: "total_absent",
+        header: "No. of Days Absent",
+      },
+      {
+        accessorKey: "total_pending_days",
+        header: "Pending Days",
+      },
+      {
+        accessorKey: "total_salary",
+        header: "Total Salary",
+        Cell: ({ cell }) => (cell.getValue() !== null ? cell.getValue() : "-"),
+      },
+      {
+        accessorKey: "per_day_salary",
+        header: "Per Day Salary",
+        Cell: ({ cell }) => (cell.getValue() !== null ? cell.getValue() : "-"),
+      },
+      {
+        accessorKey: "total_paid_amount",
+        header: "Paid Amount",
+        Cell: ({ cell }) => (cell.getValue() !== null ? cell.getValue() : "-"),
       },
       {
         header: "Attendance %",
@@ -59,6 +78,7 @@ const TeacherAttendanceTable = ({ data, isLoading }) => {
     ],
     []
   );
+  
 
   return (
     <div>
@@ -67,7 +87,7 @@ const TeacherAttendanceTable = ({ data, isLoading }) => {
         isLoading={isLoading}
         data={data || []}
         renderTopToolbar={() => (
-          <h5 className="mt-2">Teachers Attendance</h5>
+          <h5 className="mt-2">Staff Attendance</h5>
         )}
       />
     </div>

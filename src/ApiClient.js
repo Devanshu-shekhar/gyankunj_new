@@ -95,10 +95,12 @@ const saveLessonPlan = (data) => {
   }
 };
 
-const viewAttendanceReport = (grade, section, userType) => {
-  return apiInstance.get(
-    `/view_attendance_report?grade_id=${grade}&section_id=${section}&user_type=${userType}`
-  );
+const viewStudentAttendanceReport = (grade, section) => {
+  return apiInstance.get(`/view_student_attendance_report?grade_id=${grade}&section_id=${section}`);
+};
+
+const viewStaffAttendanceReport = (month) => {
+  return apiInstance.get(`/view_staff_attendance_report?month=${month}`);
 };
 
 const getLessonPlan = (teacher) => {
@@ -566,7 +568,6 @@ export {
   getResources,
   getGradeDetails,
   saveLessonPlan,
-  viewAttendanceReport,
   getLessonPlan,
   getSubjectsList,
   getTeacherRoutine,
@@ -666,5 +667,7 @@ export {
   fetchAllRoutines,
   fetchSubstituteTeachers,
   assignSubstituteTeachers,
-  makeAdmissionFeePayment
+  makeAdmissionFeePayment,
+  viewStudentAttendanceReport,
+  viewStaffAttendanceReport
 };

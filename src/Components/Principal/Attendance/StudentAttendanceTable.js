@@ -39,8 +39,11 @@ const StudentAttendanceTable = ({ data, isLoading }) => {
         header: "Roll No.",
       },
       {
-        accessorKey: "student_name",
         header: "Name",
+        accessorFn: (row) => (
+          <div>{row.student_id} - {row.student_name}</div>
+        ),
+        size: 300
       },
       {
         accessorKey: "present_days",
