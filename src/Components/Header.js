@@ -66,9 +66,15 @@ function Header({ isTabScreen, userData }) {
     parent: 5,
     non_teaching_staff: 6
 };
+
   const goToProfile = () => {
     navigate(`/profile/${encodeURIComponent(userData.user_id)}/${encodeURIComponent(roleMap[userData.role?.toLowerCase()])}`);
   };
+
+  const goToCalendar = () => {
+    navigate(`/calendar/${encodeURIComponent(userData.user_id)}/${encodeURIComponent(roleMap[userData.role?.toLowerCase()])}`);
+  };
+  
 
   const handleMouseEnter = () => {
     if(!isMobile){
@@ -159,6 +165,8 @@ function Header({ isTabScreen, userData }) {
               <NavDropdown.Item disabled>{userData.role}</NavDropdown.Item>
               <NavDropdown.Divider />
               <NavDropdown.Item onClick={goToProfile}>Profile</NavDropdown.Item>
+              <NavDropdown.Divider />
+              <NavDropdown.Item onClick={goToCalendar}>Calendar</NavDropdown.Item>
               <NavDropdown.Divider />
               <NavDropdown.Item onClick={logoutFunction}>
                 Logout

@@ -2,7 +2,7 @@ import * as React from "react";
 import Box from "@mui/material/Box";
 import { useState, useEffect } from "react";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
-import { viewStaffAttendanceReport } from "../../../ApiClient";
+import { fetchMetadataInfo, viewStaffAttendanceReport } from "../../../ApiClient";
 import TeacherAttendanceTable from "../Attendance/TeacherAttendanceTable";
 import BackButton from "../../../SharedComponents/BackButton";
 import DownloadAttendancePDF from "./DownloadAttendancePDF";
@@ -15,7 +15,7 @@ const EmployeeAttendanceView = ({userId}) => {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        getMonthsList();
+        fetchMetadataList();
     }, []);
 
     useEffect(() => {
@@ -40,13 +40,21 @@ const EmployeeAttendanceView = ({userId}) => {
         fetchAttendanceReport();
     }, [monthFilter]);
 
-    const getMonthsList = () => {
-        const monthList = Array.from({ length: 12 }, (v, i) => ({
-            value: (i + 1).toString(),
-            label: dayjs().month(i).format("MMMM"),
-        }));
-        setMonthsList(monthList);
-    };
+
+    const fetchMetadataList = React.useCallback(async () => {
+        const payload = {
+            fetch_all_months: {}
+        };
+        
+        try {
+            const res = await fetchMetadataInfo(payload);
+            const metadata = res?.data?.metadata_info || {};        
+            setMonthsList(metadata?.fetch_all_months?.months_data || []);
+        } catch (error) {
+            console.error("Failed to fetch metadata list:", error);
+        }
+    }, []);
+      
 
     const handleMonthChange = (event) => {
         setMonthFilter(event.target.value);
@@ -75,11 +83,14 @@ const EmployeeAttendanceView = ({userId}) => {
                             value={monthFilter}
                             onChange={handleMonthChange}
                         >
-                            {monthsList.map((item) => (
-                                <MenuItem key={item.value} value={item.value}>
-                                    {item.label}
-                                </MenuItem>
-                            ))}
+                            {monthsList.map((item) => {
+                                const isFutureMonth = parseInt(item.month_id, 10) - 1 > dayjs().month();
+                                return (
+                                    <MenuItem key={item.month_id} value={item.month_id} disabled={isFutureMonth}>
+                                        {item.month_name}
+                                    </MenuItem>
+                                );
+                            })}
                         </Select>
                     </FormControl>
                     {!userId && <DownloadAttendancePDF staffAttendanceData={attendanceData} />}

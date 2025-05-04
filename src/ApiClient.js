@@ -100,7 +100,7 @@ const viewStudentAttendanceReport = (grade, section) => {
 };
 
 const viewStaffAttendanceReport = (month, userId) => {
-  return apiInstance.get(`/view_staff_attendance_report?month=${month}${userId ? `&user_id=${userId}` : ""}`);
+  return apiInstance.get(`/view_staff_attendance_report?month_id=${month}${userId ? `&user_id=${userId}` : ""}`);
 };
 
 const getLessonPlan = (teacher) => {
@@ -121,7 +121,7 @@ const getTeacherRoutine = (userId, day_id) => {
 
 const viewStudentAttendance = (grade, section, month) => {
   return apiInstance.get(
-    `/get_student_attendance?grade_id=${grade}&section_id=${section}&month=${month}`
+    `/get_student_attendance?grade_id=${grade}&section_id=${section}&month_id=${month}`
   );
 };
 

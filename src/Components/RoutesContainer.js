@@ -56,6 +56,7 @@ import RoboticsLabView from "./Student/Robotics/RoboticsLabView";
 import LanguageLabView from "./Student/LanguageLab/LanguageLabView";
 import SchoolDiaryView from "./Student/SchoolDiary/SchoolDiaryView";
 import EmployeeAttendanceView from "./Principal/HRMS/EmployeeAttendanceView";
+import UserCalendar from "./UserCalendar";
 
 // Define routes for different user roles
 const roleRoutes = {
@@ -327,6 +328,10 @@ export default function RoutesContainer({ userData, mainContainerRef }) {
         <Route
           path="/onlineCoding"
           element={<ProtectedWrapper Component={JDoodleCompiler} />}
+        />
+        <Route
+          path="/calendar/:userId/:roleId"
+          element={<ProtectedWrapper Component={UserCalendar} />}
         />
         {/* 404 Route */}
         <Route
