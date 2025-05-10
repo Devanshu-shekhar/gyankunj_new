@@ -552,6 +552,10 @@ const makeAdmissionFeePayment = (payload) => {
   return apiInstance.post(`/make_admission_fee_payment`, payload);
 };
 
+const createHoliday = (payload) => {
+  return apiInstance.post(`/create_holiday`, payload);
+};
+
 
 export {
   //loginUser,
@@ -669,5 +673,6 @@ export {
   assignSubstituteTeachers,
   makeAdmissionFeePayment,
   viewStudentAttendanceReport,
-  viewStaffAttendanceReport
+  viewStaffAttendanceReport,
+  createHoliday
 };

@@ -72,7 +72,7 @@ function Header({ isTabScreen, userData }) {
   };
 
   const goToCalendar = () => {
-    navigate(`/calendar/${encodeURIComponent(userData.user_id)}/${encodeURIComponent(roleMap[userData.role?.toLowerCase()])}`);
+    navigate(`/calendar`);
   };
   
 

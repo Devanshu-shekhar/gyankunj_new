@@ -1,104 +1,126 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Button,
-    TextField,
-    FormControlLabel,
-    Checkbox,
-    MenuItem,
+    Dialog, DialogTitle, DialogContent, DialogActions,
+    Button, TextField, Snackbar, Alert,
+    FormControl
 } from "@mui/material";
+import { useForm, Controller } from "react-hook-form";
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
 import format from "date-fns/format";
 import parse from "date-fns/parse";
 import startOfWeek from "date-fns/startOfWeek";
 import getDay from "date-fns/getDay";
+import enUS from "date-fns/locale/en-US";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import { useParams } from "react-router-dom";
-
-const locales = {
-    "en-US": require("date-fns/locale/en-US"),
-};
+import { fetchMetadataInfo, createHoliday } from "../ApiClient";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
 
 const localizer = dateFnsLocalizer({
     format,
     parse,
     startOfWeek,
     getDay,
-    locales,
+    locales: { 'en-US': enUS },
 });
 
 const UserCalendar = () => {
-    const { userId, roleId } = useParams(); // Extract userId from query parameters
     const [events, setEvents] = useState([]);
+    const [userData, setUserData] = useState({});
     const [open, setOpen] = useState(false);
-    const [newEvent, setNewEvent] = useState({
-        event_id: "",
-        title: "",
-        description: "",
-        start: null,
-        end: null,
-        all_day: false,
-        location: "",
-        event_type: "meeting",
+    const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
+    const { control, handleSubmit, reset, formState: { errors } } = useForm({
+        defaultValues: {
+            event_name: "",
+            event_date: null,
+        },
     });
 
-    const handleSelectSlot = ({ start, end }) => {
+    useEffect(() => {
+        const stored = localStorage.getItem("UserData");
+        if (stored) {
+            setUserData(JSON.parse(stored));
+        }
+        fetchEvents();
+    }, []);
+
+    const fetchEvents = async () => {
+        try {
+            const res = await fetchMetadataInfo({ fetch_all_holidays: {} });
+            const holidayData = res?.data?.metadata_info?.fetch_all_holidays?.holiday_data || [];
+
+            const formatted = holidayData.map((e) => ({
+                title: e.event_name,
+                start: new Date(e.event_date),
+                end: new Date(e.event_date),
+                allDay: true,
+            }));
+            setEvents(formatted);
+        } catch (err) {
+            console.error(err);
+            showSnackbar("Failed to fetch events", "error");
+        }
+    };
+
+    const handleSelectSlot = ({ start }) => {
+        const isPrivileged = ["ADMIN", "PRINCIPAL"].includes(userData.role);
+        if (!isPrivileged) return;
+
         const today = new Date();
-        const startDate = new Date(start);
-
-        // Set time to midnight for comparing only dates
         today.setHours(0, 0, 0, 0);
-        startDate.setHours(0, 0, 0, 0);
+        start.setHours(0, 0, 0, 0);
+        if (start < today) return;
 
-        if (startDate < today) return; // 👈 Skip opening modal for past days
-
-        setNewEvent({
-            event_id: `evt${Date.now()}`,
-            title: "",
-            description: "",
-            start,
-            end,
-            all_day: false,
-            location: "",
-            event_type: "meeting",
+        reset({
+            event_name: "",
+            event_date: dayjs(start),
         });
         setOpen(true);
     };
 
+    const handleClose = () => {
+        setOpen(false);
+        reset();
+    };
+
+    const onSubmit = async (data) => {
+        const payload = {
+            holiday_data: [
+                {
+                    event_name: data.event_name,
+                    event_date: dayjs(data.event_date).format("YYYY-MM-DD"),
+                },
+            ],
+        };
+
+        try {
+            const res = await createHoliday(payload);
+            if (res?.data?.status === "success") {
+                showSnackbar("Event created successfully", "success");
+                handleClose();
+                fetchEvents();
+            } else {
+                showSnackbar("Failed to save event", "error");
+            }
+        } catch (err) {
+            console.error(err);
+            showSnackbar("Failed to save event", "error");
+        }
+    };
+
+    const showSnackbar = (message, severity) => {
+        setSnackbar({ open: true, message, severity });
+    };
 
     const disablePastDates = (date) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const isPast = date < today;
-
         return {
-            className: isPast ? "rbc-day-disabled" : "",
-            style: isPast ? { backgroundColor: "#f5f5f5", pointerEvents: "none" } : {},
+            className: date < today ? "rbc-day-disabled" : "",
+            style: date < today ? { backgroundColor: "#f0f0f0", pointerEvents: "none" } : {},
         };
-    };
-
-    const handleClose = () => {
-        setOpen(false);
-        setNewEvent({
-            event_id: "",
-            title: "",
-            description: "",
-            start: null,
-            end: null,
-            all_day: false,
-            location: "",
-            event_type: "meeting",
-        });
-    };
-
-    const handleSave = () => {
-        if (newEvent.title.trim()) {
-            setEvents([...events, newEvent]);
-        }
-        handleClose();
     };
 
     return (
@@ -108,83 +130,74 @@ const UserCalendar = () => {
                 events={events}
                 startAccessor="start"
                 endAccessor="end"
-                selectable
                 style={{ height: 600, margin: "20px" }}
+                selectable={["ADMIN", "PRINCIPAL"].includes(userData.role)}
                 onSelectSlot={handleSelectSlot}
                 dayPropGetter={disablePastDates}
+                popup
             />
 
             <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-                <DialogTitle>Add New Event</DialogTitle>
-                <DialogContent dividers>
-                    <TextField
-                        margin="dense"
-                        label="Event Title"
-                        fullWidth
-                        value={newEvent.title}
-                        onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                    />
-                    <TextField
-                        margin="dense"
-                        label="Description"
-                        fullWidth
-                        multiline
-                        value={newEvent.description}
-                        onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                    />
-                    <TextField
-                        margin="dense"
-                        label="Location"
-                        fullWidth
-                        value={newEvent.location}
-                        onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
-                    />
-                    <TextField
-                        margin="dense"
-                        type="datetime-local"
-                        label="Start Time"
-                        InputLabelProps={{ shrink: true }}
-                        fullWidth
-                        value={newEvent.start ? new Date(newEvent.start).toISOString().slice(0, 16) : ""}
-                        onChange={(e) => setNewEvent({ ...newEvent, start: new Date(e.target.value) })}
-                    />
-                    <TextField
-                        margin="dense"
-                        type="datetime-local"
-                        label="End Time"
-                        InputLabelProps={{ shrink: true }}
-                        fullWidth
-                        value={newEvent.end ? new Date(newEvent.end).toISOString().slice(0, 16) : ""}
-                        onChange={(e) => setNewEvent({ ...newEvent, end: new Date(e.target.value) })}
-                    />
-                    <FormControlLabel
-                        control={
-                            <Checkbox
-                                checked={newEvent.all_day}
-                                onChange={(e) => setNewEvent({ ...newEvent, all_day: e.target.checked })}
+                <DialogTitle>Add Holiday</DialogTitle>
+                <form onSubmit={handleSubmit(onSubmit)} noValidate>
+                    <DialogContent dividers>
+                        <FormControl fullWidth className="mb-3">
+                            <Controller
+                                name="event_name"
+                                control={control}
+                                rules={{ required: "Event name is required" }}
+                                render={({ field }) => (
+                                    <TextField
+                                        {...field}
+                                        label="Event Name"
+                                        fullWidth
+                                        margin="dense"
+                                        error={!!errors.event_name}
+                                    />
+                                )}
                             />
-                        }
-                        label="All Day Event"
-                    />
-                    <TextField
-                        margin="dense"
-                        select
-                        label="Event Type"
-                        fullWidth
-                        value={newEvent.event_type}
-                        onChange={(e) => setNewEvent({ ...newEvent, event_type: e.target.value })}
-                    >
-                        <MenuItem value="meeting">Meeting</MenuItem>
-                        <MenuItem value="holiday">Holiday</MenuItem>
-                        <MenuItem value="exam">Exam</MenuItem>
-                        <MenuItem value="activity">Activity</MenuItem>
-                    </TextField>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose} color="inherit">Cancel</Button>
-                    <Button onClick={handleSave} variant="contained" color="primary">Save</Button>
-                </DialogActions>
+                        </FormControl>
+                        <FormControl fullWidth>
+                            <Controller
+                                name="event_date"
+                                control={control}
+                                rules={{ required: "Event date is required" }}
+                                render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                        <DatePicker
+                                            label="Event Date"
+                                            minDate={dayjs()}
+                                            format="YYYY-MM-DD"
+                                            value={value}
+                                            onChange={onChange}
+                                            slotProps={{
+                                                textField: {
+                                                    fullWidth: true,
+                                                    error: !!error,
+                                                },
+                                            }}
+                                        />
+                                    </LocalizationProvider>
+                                )}
+                            />
+                        </FormControl>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleClose}>Cancel</Button>
+                        <Button type="submit" variant="contained" color="primary">
+                            Save
+                        </Button>
+                    </DialogActions>
+                </form>
             </Dialog>
+
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+            >
+                <Alert severity={snackbar.severity}>{snackbar.message}</Alert>
+            </Snackbar>
         </>
     );
 };

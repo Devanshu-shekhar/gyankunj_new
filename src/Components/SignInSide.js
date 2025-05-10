@@ -71,7 +71,11 @@ export default function SignInSide(props) {
 
       if (data.status === "success") {
         fetchDesignationsList();  
-        localStorage.setItem("UserData", JSON.stringify(data));
+        const userData = {
+          ...data,
+          role: data.role? data.role.toUpperCase() : ""
+        };
+        localStorage.setItem("UserData", JSON.stringify(userData));
         props.onHide();
 
         if (rememberMe) {
@@ -82,13 +86,13 @@ export default function SignInSide(props) {
           localStorage.removeItem("password");
         }
 
-        if (data.role === "ADMIN" || data.role === "PRINCIPAL") {
+        if (userData.role === "ADMIN" || userData.role === "PRINCIPAL") {
           navigate("/principalDashboard/dashboard");
-        } else if (data.role === "TEACHER") {
+        } else if (userData.role === "TEACHER") {
           navigate("/teacherDashboard/dashboard");
-        } else if (data.role === "STUDENT") {
+        } else if (userData.role === "STUDENT") {
           navigate("/studentDashboard/dashboard");
-        } else if (data.role === "PARENT") {
+        } else if (userData.role === "PARENT") {
           navigate("/parentDashboard/dashboard");
         }
       } else {
