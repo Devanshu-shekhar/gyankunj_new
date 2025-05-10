@@ -330,7 +330,7 @@ export default function RoutesContainer({ userData, mainContainerRef }) {
           element={<ProtectedWrapper Component={JDoodleCompiler} />}
         />
         <Route
-          path="/calendar/:userId/:roleId"
+          path="/calendar"
           element={<ProtectedWrapper Component={UserCalendar} />}
         />
         {/* 404 Route */}
