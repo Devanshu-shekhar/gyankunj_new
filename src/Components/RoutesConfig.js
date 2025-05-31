@@ -22,6 +22,12 @@ export const routesConfig = {
       route: "/principalDashboard/dashboard",
     },
     {
+      code: "schoolConfiguration",
+      title: "School Configuration",
+      icon: <HomeOutlinedIcon />,
+      route: "/principalDashboard/schoolConfiguration",
+    },    
+    {
       code: "masterRoutine",
       title: "Master Routine",
       icon: <CalendarMonthOutlinedIcon />,
