@@ -25,7 +25,6 @@
 .heading p {
     width: 600px;
     color: #FFF;
-    font-family: Poppins;
     font-size: 50px;
     font-style: normal;
     font-weight: 700;
@@ -35,7 +34,6 @@
 .heading p:nth-child(2) {
     width: 600px;
     color: #FFF;
-    font-family: Poppins;
     font-size: 18px;
     font-style: normal;
     font-weight: 400;
@@ -62,7 +60,6 @@
     border-radius: 14.058px;
     background: #FF00C7;
     color: #FFF;
-    font-family: Poppins;
     font-size: 18.744px;
     font-style: normal;
     font-weight: 600;
@@ -76,7 +73,6 @@
     border-radius: 14.058px;
     border: 1.171px solid #FFF;
     color: black;
-    font-family: Poppins;
     font-size: 18.744px;
     font-style: normal;
     font-weight: 500;
@@ -104,7 +100,6 @@
 
 .teacherInfo h2 {
     color: #000;
-    font-family: Aeonik;
     font-size: 54.277px;
     font-style: normal;
     font-weight: 700;
@@ -115,7 +110,6 @@
 
 .teacherInfo p {
     color: #FFF;
-    font-family: Aeonik;
     font-size: 22.681px;
     font-style: normal;
     font-weight: 700;
@@ -126,7 +120,6 @@
 
 .teacherInfo h1 {
     color: #000;
-    font-family: Aeonik;
     font-size: 44.277px;
     font-style: normal;
     font-weight: 700;
@@ -146,7 +139,6 @@
 .teacherstudentInfo p {
     /* width: 393px; */
     color: black;
-    font-family: Poppins;
     font-size: 40px;
     font-style: normal;
     font-weight: 600;
@@ -155,7 +147,6 @@
 
 .teacherstudentInfo span {
     color: #ededf1;
-    font-family: Poppins;
     font-size: 22px;
     font-style: normal;
     font-weight: 400;
@@ -172,7 +163,6 @@
 
 .allinone p {
     color: #eef1f1;
-    font-family: Poppins;
     font-size: 36px;
     font-style: normal;
     font-weight: 700;
@@ -185,7 +175,6 @@
     width: 80%;
     color: white;
     /* text-align: center; */
-    font-family: Poppins;
     font-size: 24px;
     font-style: normal;
     font-weight: 400;
@@ -234,7 +223,6 @@
     width: 270px;
     color: #2F327D;
     text-align: center;
-    font-family: Poppins;
     font-size: 30px;
     font-style: normal;
     font-weight: 500;
@@ -245,7 +233,6 @@
 .card span:nth-child(2) {
     color: #696984;
     text-align: center;
-    font-family: Poppins;
     font-size: 20px;
     font-style: normal;
     font-weight: 400;
@@ -266,7 +253,6 @@
 .forteacherandstudent p:nth-child(1) {
     color: #2f327d;
     text-align: center;
-    font-family: Poppins;
     font-size: 44px;
     font-style: normal;
     font-weight: 600;
@@ -278,7 +264,6 @@
 .forteacherandstudent p:nth-child(2) {
     color: #d4d4eb;
     /* text-align: center; */
-    font-family: Poppins;
     font-size: 24px;
     font-style: normal;
     font-weight: 400;
@@ -341,7 +326,6 @@
 
 .footer1 p {
     color: #FFF;
-    font-family: Poppins;
     font-size: 22px;
     font-style: normal;
     font-weight: 600;
@@ -371,7 +355,6 @@
 .footer2 p {
     color: #B2B3CF;
     text-align: center;
-    font-family: Poppins;
     font-size: 26px;
     font-style: normal;
     font-weight: 500;
@@ -395,7 +378,6 @@
     border: 1px solid #83839A;
     color: #83839A;
     text-align: center;
-    font-family: Poppins;
     font-size: 20px;
     font-style: normal;
     font-weight: 400;
@@ -410,7 +392,6 @@
     border-radius: 60px;
     background: #49BBBD;
     color: #FFF;
-    font-family: Poppins;
     font-size: 22px;
     font-style: normal;
     font-weight: 500;
@@ -420,7 +401,6 @@
 .footer p {
     color: #B2B3CF;
     text-align: center;
-    font-family: Poppins;
     font-size: 22px;
     font-style: normal;
     font-weight: 400;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navbar, Nav, NavDropdown } from "react-bootstrap";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import profilePic from "../Images/profilePic.jpg";
@@ -48,6 +48,19 @@ function Header({ isTabScreen, userData }) {
     },
   };
 
+
+  useEffect(() => {
+    const configStr = localStorage.getItem("school_config");
+    if (configStr) {
+      try {
+        const parsedConfig = JSON.parse(configStr);
+        Gyankoonj_logo = parsedConfig.logo_url || Gyankoonj_logo;
+      } catch (err) {
+        console.warn("Invalid school config in localStorage");
+      }
+    }
+  }, []);
+  
   const openLoginPage = () => {
     setShowLogin(true);
   };
