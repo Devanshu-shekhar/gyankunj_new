@@ -1,5 +1,6 @@
 import { createContext, useState, useMemo, useEffect } from "react";
 import { createTheme } from "@mui/material/styles";
+import Gyankoonj_fav from "./Images/GKicon.png";
 
 // color design tokens export
 export const tokens = (mode) => ({
@@ -74,6 +75,7 @@ export const useMode = () => {
       try {
         const parsedConfig = JSON.parse(configStr);
         setSchoolConfig(parsedConfig);
+        updateFavicon(parsedConfig.favicon_url || Gyankoonj_fav);
   
         // Dynamically update CSS variables
         document.documentElement.style.setProperty("--primary-color", parsedConfig.primary_color || "#1976d2");
@@ -87,6 +89,22 @@ export const useMode = () => {
       }
     }
   }, []);
+
+  const updateFavicon = (url) => {
+    // Remove existing favicon(s)
+    const existingIcons = document.querySelectorAll("link[rel*='icon']");
+    existingIcons.forEach(icon => icon.parentNode.removeChild(icon));
+  
+    // Create new favicon link
+    const link = document.createElement('link');
+    link.type = 'image/x-icon';
+    link.rel = 'shortcut icon';
+    link.href = url;
+  
+    // Append to head
+    document.head.appendChild(link);
+  };
+  
   
 
   const colorMode = useMemo(() => ({
