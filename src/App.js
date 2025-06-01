@@ -7,6 +7,8 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { pdfjs } from 'react-pdf';
 import ChangePasswordDialog from "./Components/ChangePasswordDialog";
+import { CssBaseline, ThemeProvider } from "@mui/material";
+import { ColorModeContext, useMode } from "./theme";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.js',
@@ -14,6 +16,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 
 function App() {
+  const [theme, colorMode] = useMode();
   const [userData, setUserData] = useState({});
   const [isTabScreen, setIsTabScreen] = useState(false);
   const [isPageNotFound, setIsPageNotFound] = useState(false);
@@ -50,31 +53,36 @@ function App() {
   }, []);
 
   return (
-    <div className="app">
-      <div className={`main-header ${isPageNotFound && "d-none"} `}>
-        <Header isTabScreen={isTabScreen} userData={userData} />
-      </div>
-      <div className="main-body">
-        {!["PARENT", "STUDENT"].includes(userData.role) && !isTabScreen && userData?.token && !isPageNotFound && (
-          <div className={`main-sidebar ${isCollapsed && "side-small"} `}>
-            <SidebarContainer
-              userData={userData}
-              setCollapsed={setIsCollapsed}
-              openFor="sidebar"
-            />
+    <ColorModeContext.Provider value={colorMode}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <div className="app">
+          <div className={`main-header ${isPageNotFound && "d-none"} `}>
+            <Header isTabScreen={isTabScreen} userData={userData} />
           </div>
-        )}
-        <div
-          ref={mainContainerRef}
-          className={`main-container ${
-            (["PARENT", "STUDENT"].includes(userData.role) || isTabScreen || !userData?.token || isPageNotFound) && "w-100"
-          } ${isCollapsed && "cont-big"} ${!userData?.token && 'p-0'}`}
-        >
-          <RoutesContainer userData={userData} mainContainerRef={mainContainerRef} />
-          {open && <ChangePasswordDialog open={open} onClose={() => setOpen(false)} userId={userData.user_id} />}
+          <div className="main-body">
+            {!["PARENT", "STUDENT"].includes(userData.role) && !isTabScreen && userData?.token && !isPageNotFound && (
+              <div className={`main-sidebar ${isCollapsed && "side-small"} `}>
+                <SidebarContainer
+                  userData={userData}
+                  setCollapsed={setIsCollapsed}
+                  openFor="sidebar"
+                />
+              </div>
+            )}
+            <div
+              ref={mainContainerRef}
+              className={`main-container ${
+                (["PARENT", "STUDENT"].includes(userData.role) || isTabScreen || !userData?.token || isPageNotFound) && "w-100"
+              } ${isCollapsed && "cont-big"} ${!userData?.token && 'p-0'}`}
+            >
+              <RoutesContainer userData={userData} mainContainerRef={mainContainerRef} />
+              {open && <ChangePasswordDialog open={open} onClose={() => setOpen(false)} userId={userData.user_id} />}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </ThemeProvider>
+    </ColorModeContext.Provider>
   );
 }
 
