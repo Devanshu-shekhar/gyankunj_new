@@ -88,6 +88,9 @@ export const useMode = () => {
         console.warn("Invalid school config in localStorage");
       }
     }
+    else{
+      updateFavicon(Gyankoonj_fav);
+    }
   }, []);
 
   const updateFavicon = (url) => {
