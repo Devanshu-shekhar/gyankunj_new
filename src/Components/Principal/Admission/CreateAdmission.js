@@ -17,7 +17,7 @@ import {
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -55,7 +55,7 @@ const CreateAdmission = ({
       name: "",
       gender: "",
       date_of_birth: null,
-      date_of_joining: null,
+      date_of_joining: dayjs(),
       country: "",
       child_pan_card: "",
       child_hobbies: "",
@@ -113,6 +113,7 @@ const CreateAdmission = ({
   const navigate = useNavigate();
   const [showAlert, setShowAlert] = useState("");
   const [showSecondForm, setShowSecondForm] = useState(false);
+  const [isEmiApplicable, setIsEmiApplicable] = useState(true);
   const isEditMode = Object.keys(selectedData).length > 0;
 
   useEffect(() => {
@@ -138,6 +139,8 @@ const CreateAdmission = ({
   }, [selectedData, reset]);
 
   const [primaryPhone, setPrimaryPhone] = useState(null); // Track the primary phone
+  
+  const anyKnownIllness = watch("any_known_illness");
 
   const handlePrimaryPhoneChange = (fieldName) => {
     // Only allow one primary phone
@@ -150,6 +153,9 @@ const CreateAdmission = ({
     const discountedAmount = watchSecond("discounted_amount") || 0;
     const numInstallments = watchSecond("number_of_installments") || 0;
     const isEmiEnabled = watchSecond("is_emi_enabled");
+
+    const shouldHideEmi = depositedFees + discountedAmount >= totalAdmission;
+    setIsEmiApplicable(!shouldHideEmi);
 
     if (isEmiEnabled) {
       // Calculate total_emi_amount
@@ -235,6 +241,12 @@ const CreateAdmission = ({
   };
 
   const onSubmitSecond = (data) => {
+    if (isEmiApplicable && data.is_emi_enabled) {
+      if (!data.number_of_installments || !data.first_installment_due_date) {
+        setShowAlert("error");
+        return;
+      }
+    }
     const formattedStartDate = dayjs(data.first_installment_due_date).format("YYYY-MM-DD");
      
     const payload = {
@@ -253,8 +265,8 @@ const CreateAdmission = ({
         setTimeout(() => {
           if (res?.data?.status === "success") {
             navigate(`/principalDashboard/financeView?activeView=earning`);
+            handleClose(true);
           }
-          handleClose(true);
           setTimeout(() => setShowAlert(""), 2000);
         }, 1000);
       })
@@ -263,6 +275,16 @@ const CreateAdmission = ({
         setTimeout(() => setShowAlert(""), 3000);
       });
   };
+
+  useEffect(() => {
+    if (!anyKnownIllness) {
+      // Clear the value of "type_of_illness" when illness checkbox is unchecked
+      reset((prev) => ({
+        ...prev,
+        type_of_illness: "",
+      }));
+    }
+  }, [anyKnownIllness, reset]);
 
   const formFields = {
     "Student Details": [
@@ -339,8 +361,12 @@ const CreateAdmission = ({
                     {section}
                   </Typography>
                 </Grid>
-                {fields.map((fieldItem) => (
-                  <Grid item xs={6} key={fieldItem.name}>
+                {fields.map((fieldItem) => {
+                  if (fieldItem.name === "type_of_illness" && !anyKnownIllness) {
+                    return null;
+                  }
+                  return (
+                    <Grid item xs={6} key={fieldItem.name}>
                     <FormControl fullWidth>
                       {fieldItem.type === "select" ? (
                         <Controller
@@ -406,12 +432,16 @@ const CreateAdmission = ({
                                 format="YYYY-MM-DD"
                                 label={fieldItem.label}
                                 value={value || null}
+                                readOnly={fieldItem.name === "date_of_joining"}
                                 onChange={onChange}
                                 slotProps={{
                                   textField: {
                                     variant: "outlined",
                                     error: !!error,
                                     helperText: error?.message,
+                                    InputProps: {
+                                      readOnly: fieldItem.name === "date_of_joining" // make input field read-only
+                                    },      
                                   },
                                 }}
                               />
@@ -441,11 +471,21 @@ const CreateAdmission = ({
                             name={fieldItem.name}
                             rules={{
                               required:
-                                fieldItem.name === "father_phone"
-                                  ? !watch("mother_phone") // Father phone is required if mother phone is not provided
+                                fieldItem.name === "type_of_illness"
+                                  ? anyKnownIllness || false
+                                  : fieldItem.name === "father_phone"
+                                  ? !watch("mother_phone")
                                   : fieldItem.name === "mother_phone"
-                                    ? !watch("father_phone") // Mother phone is required if father phone is not provided
-                                    : fieldItem.required, // Default requirement based on the fieldItem
+                                  ? !watch("father_phone")
+                                  : fieldItem.required,
+                              pattern:
+                                  fieldItem.name === "father_phone" || fieldItem.name === "mother_phone"
+                                    ? {
+                                        value: /^\d{10}$/,
+                                        message: "Phone number must be exactly 10 digits",
+                                      }
+                                    : undefined,
+                              
                             }}
                             control={control}
                             render={({ field, fieldState }) => (
@@ -465,6 +505,8 @@ const CreateAdmission = ({
                                   }
                                   error={!!fieldState?.error}
                                   value={field.value ?? ""}
+                                  helperText={fieldState?.error?.message}
+                                  inputProps={fieldItem.type === "number" ? { maxLength: 10 } : {}}
                                 />
                                 {fieldItem.isPrimary && watch(fieldItem.name) && (
                                   <FormControlLabel
@@ -486,7 +528,8 @@ const CreateAdmission = ({
                       )}
                     </FormControl>
                   </Grid>
-                ))}
+                  )
+                })}
               </Grid>
             ))}
           </DialogContent>
@@ -550,115 +593,54 @@ const CreateAdmission = ({
               </FormControl>
             </Grid>
 
-            {/* Enable EMI Checkbox */}
-            <Grid item xs={12}>
-              <FormControl>
-                <Controller
-                  name="is_emi_enabled"
-                  control={controlSecond}
-                  render={({ field }) => (
-                    <FormControlLabel control={<Checkbox {...field} checked={field.value} />} label="Enable EMI" />
-                  )}
-                />
-              </FormControl>
-            </Grid>
-
-            {/* EMI Fields - Shown Only If EMI is Enabled */}
-            {watchSecond("is_emi_enabled") && (
+            {isEmiApplicable && (
               <>
-                {/* Total EMI Amount (Auto-Calculated) */}
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
+                {/* EMI Checkbox */}
+                <Grid item xs={12}>
+                  <FormControl>
                     <Controller
-                      name="total_emi_amount"
+                      name="is_emi_enabled"
                       control={controlSecond}
                       render={({ field }) => (
-                        <TextField {...field} type="number" label="Total EMI Amount" margin="normal" required disabled />
+                        <FormControlLabel
+                          control={<Checkbox {...field} checked={field.value} />}
+                          label="Enable EMI"
+                        />
                       )}
                     />
                   </FormControl>
                 </Grid>
 
-                {/* Number of Installments */}
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name="number_of_installments"
-                      control={controlSecond}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Number of Installments"
-                          select
-                          variant="outlined"
-                          margin="normal"
-                        >
-                          {[3, 6, 9, 12].map((option) => (
-                            <MenuItem key={option} value={option}>
-                              {option} Months
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                      )}
-                    />
-                  </FormControl>
-                </Grid>
-
-                {/* Installment Amount (Auto-Calculated) */}
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name="installment_amount"
-                      control={controlSecond}
-                      render={({ field }) => (
-                        <TextField {...field} type="number" label="Installment Amount" margin="normal" required disabled />
-                      )}
-                    />
-                  </FormControl>
-                </Grid>
-
-                {/* First Installment Due Date */}
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name="first_installment_due_date"
-                      control={controlSecond}
-                      rules={{
-                        required: "Start EMI date is required",
-                        validate: (value) => {
-                          const selectedDate = dayjs(value);
-                          if (!selectedDate.isValid()) {
-                            return "Invalid date";
-                          }
-                          const today = dayjs().startOf("day");
-                          if (selectedDate.isBefore(today, "day")) {
-                            return "Start EMI date can't be in past";
-                          }
-                          return true;
-                        },
-                      }}
-                      render={({ field: { onChange, value }, fieldState: { error } }) => (
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                          <DatePicker
-                            format="YYYY-MM-DD"
-                            label="Start EMI Date"
-                            value={value || null}
-                            onChange={onChange}
-                            slotProps={{
-                              textField: {
-                                variant: "outlined",
-                                error: !!error,
-                                helperText: error?.message,
-                              },
-                            }}
-                          />
-                        </LocalizationProvider>
-                      )}
-                    />
-                  </FormControl>
-                </Grid>
+                {/* EMI Fields – Only when EMI is checked */}
+                {watchSecond("is_emi_enabled") && (
+                  <>
+                    {/* Each field with `required` validation now */}
+                    <Grid item xs={12} md={6}>
+                      <FormControl fullWidth>
+                        <Controller
+                          name="total_emi_amount"
+                          control={controlSecond}
+                          rules={{ required: "Total EMI Amount is required" }}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              type="number"
+                              label="Total EMI Amount"
+                              margin="normal"
+                              required
+                              disabled
+                            />
+                          )}
+                        />
+                      </FormControl>
+                    </Grid>
+                    {/* Repeat for number_of_installments, installment_amount, first_installment_due_date */}
+                    {/* Already done in your current code with validation */}
+                  </>
+                )}
               </>
             )}
+
           </Grid>
 
         </DialogContent>

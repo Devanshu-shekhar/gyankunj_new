@@ -32,7 +32,7 @@ const PaFeedback = (props) => {
 
   useEffect(() => {
     setIsLoading(true);
-    getLeaveApplicationsList(userInfo.user_id, props.isComingFromProfile)
+    getLeaveApplicationsList(props.userId, props.isComingFromProfile)
       .then((res) => {
         setAppliedLeavesList(res?.data?.leave_data || []);
         setTimeout(() => {
@@ -43,7 +43,7 @@ const PaFeedback = (props) => {
         console.log(err);
         setIsLoading(false);
       });
-  }, [refreshTable, userInfo.user_id]);
+  }, [refreshTable, props.userId, props.isComingFromProfile]);
 
   const handleAddLeave = () => {
     setSelectedLeave({});

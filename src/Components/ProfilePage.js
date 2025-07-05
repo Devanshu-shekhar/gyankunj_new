@@ -110,7 +110,7 @@ const ProfilePage = () => {
           )}
         </CardContent>
       </Card>
-      <PaFeedback isComingFromProfile={true} />  
+      <PaFeedback isComingFromProfile={true} userId={userId} />  
       
       {!["Parent", "Student"].includes(roleNameById[roleId]) &&
         <div className="mt-5"><EmployeeAttendanceView userId={userId} /></div>
