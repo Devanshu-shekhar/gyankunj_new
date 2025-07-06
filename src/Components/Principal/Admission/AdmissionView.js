@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { Box, Button, CircularProgress, Grid } from "@mui/material";
+import React, { useEffect, useState, useCallback, useRef } from "react";
+import { Box, Button, CircularProgress, Grid, IconButton, InputAdornment, TextField } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import CreateAdmission from "./CreateAdmission";
 import {
   deleteUserInfo,
   fetchFeesStructuresList,
@@ -11,13 +10,16 @@ import {
 import AlertDialogSlide from "../HRMS/AlertDialogSlide";
 import { showAlertMessage } from "../../AlertMessage";
 import UserCard from "./UserCard";
+import ClearIcon from "@mui/icons-material/Clear";
+import { use } from "react";
+import { set } from "react-hook-form";
 
 const AdmissionView = () => {
-  const [isAddUserModalVisible, setIsAddUserModalVisible] =
-    useState(false);
+  const searchTimeoutRef = useRef(null);
   const [refreshView, setRefreshView] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpenConfirmDialog, setIsOpenConfirmDialog] = useState(false);
+  const [isReadyToCreasteAdmission, setIsReadyToCreasteAdmission] = useState(false);
   const [showAlert, setShowAlert] = useState("");
   const [selectedUserDetails, setSelectedUserDetails] = useState(null);
   const [usersList, setUsersList] = useState([]);
@@ -25,6 +27,8 @@ const AdmissionView = () => {
   const [feesStructuresList, setFeesStructuresList] = useState([]);
   const designationsList = JSON.parse(localStorage.getItem("UserRoles") || "[]");
   const role_id = designationsList.find((item) => item.role_name === "Student")?.role_id || null;
+  const [searchText, setSearchText] = useState("");
+  const [filteredUsers, setFilteredUsers] = useState([]);
 
   const navigate = useNavigate();
 
@@ -108,6 +112,7 @@ const AdmissionView = () => {
         });
         const usersList = res?.data?.user_data || [];
         setUsersList(usersList);
+        setFilteredUsers(usersList);
       } catch (err) {
         console.error(err);
       } finally {
@@ -115,14 +120,14 @@ const AdmissionView = () => {
       }
     };
     fetchUsersList();
-  }, [refreshView]);
+  }, [refreshView, role_id]);
 
   // Handling action with useCallback to prevent unnecessary re-renders
   const handleAction = useCallback((data, action) => {
     switch (action) {
       case "edit":
         setSelectedUserDetails(data);
-        setIsAddUserModalVisible(true);
+        setIsReadyToCreasteAdmission(true);
         break; // Using break instead of return for clarity
 
       case "delete":
@@ -135,14 +140,23 @@ const AdmissionView = () => {
     }
   }, []);
 
-  const handleClose = (isSubmit) => {
-    setIsAddUserModalVisible(false);
-    setSelectedUserDetails(null);
-    if (isSubmit) {
-      // Debounce the refresh to avoid excessive rerenders
-      setTimeout(() => setRefreshView((prev) => !prev), 500);
-    }
+  useEffect(() => {
+    if (!isReadyToCreasteAdmission) return;
+    handleOpenAdmissionPage();
+  }, [isReadyToCreasteAdmission]);
+
+  const handleOpenAdmissionPage = () => {
+    debugger;
+    localStorage.removeItem("admission_metadata");
+    localStorage.setItem("admission_metadata", JSON.stringify({
+      selectedUserDetails,
+      metadataList,
+      feesStructuresList,
+      role_id
+    }));
+    navigate("/principalDashboard/admissionView/create-admission");
   };
+
 
   // Confirmation dialog
   const closeDialog = (isConfirmed) => {
@@ -176,25 +190,80 @@ const AdmissionView = () => {
     navigate(`/profile/${encodeURIComponent(userData.user_id)}/${encodeURIComponent(4)}`);
   };
 
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchText(value);
+
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Set new timeout for 400ms delay
+    searchTimeoutRef.current = setTimeout(() => {
+      if (value.trim() === "") {
+        setFilteredUsers(usersList);
+      } else {
+        const filtered = usersList.filter((user) =>
+          (user.name || "")
+            .toLowerCase()
+            .includes(value.toLowerCase()) ||
+          (user.user_id || "")
+            .toLowerCase()
+            .includes(value.toLowerCase())
+        );
+        setFilteredUsers(filtered);
+      }
+    }, 400); // You can adjust this delay as needed
+  };
+
+
   return (
     <>
-      <Grid container justifyContent="end" alignItems="center">
-        <Button
-          className="rounded-pill"
-          variant="contained"
-          onClick={() => handleAction({}, "edit")}
-          color="warning"
-        >
-          + New Admission
-        </Button>
+      <Grid container justifyContent="space-between" alignItems="center" spacing={2} mb={2}>
+        <Grid item xs={12} sm={6} md={4}>
+           <TextField
+            fullWidth
+            label="Search by name or ID"
+            variant="outlined"
+            value={searchText}
+            onChange={handleSearch}
+            InputProps={{
+              endAdornment: searchText && (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => {
+                      setSearchText("");
+                      setFilteredUsers(usersList); // Reset user list
+                    }}
+                    edge="end"
+                  >
+                    <ClearIcon />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Grid>
+        <Grid item>
+          <Button
+            className="rounded-pill"
+            variant="contained"
+            onClick={() => handleAction({}, "edit")}
+            color="warning"
+          >
+            + New Admission
+          </Button>
+        </Grid>
       </Grid>
+
       <Grid container spacing={3} mt={1}>
         {isLoading ? (
           <Box className="d-flex justify-content-center align-items-center w-100 mt-5">
             <CircularProgress />
           </Box>
-        ) : usersList && usersList.length > 0 ? (
-          usersList.map((user) => (
+        ) : filteredUsers && filteredUsers.length > 0 ? (
+          filteredUsers.map((user) => (
             <UserCard
               key={user.user_id}
               userDetails={user}
@@ -207,16 +276,6 @@ const AdmissionView = () => {
           </Box>
         )}
       </Grid>
-      {isAddUserModalVisible && (
-        <CreateAdmission
-          isOpen={isAddUserModalVisible}
-          handleClose={handleClose}
-          selectedData={selectedUserDetails}
-          metadataList={metadataList}
-          feesStructuresList={feesStructuresList}
-          role_id={role_id}
-        />
-      )}
 
       {/* Confirmation Dialog */}
       <AlertDialogSlide

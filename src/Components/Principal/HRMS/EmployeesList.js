@@ -1,10 +1,13 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import EmployeeCard from "./EmployeeCard";
 import {
   Box,
   Button,
   CircularProgress,
   Grid,
+  IconButton,
+  InputAdornment,
+  TextField,
   ToggleButton,
   ToggleButtonGroup,
 } from "@mui/material";
@@ -14,6 +17,7 @@ import { deleteUserInfo, getUsersList } from "../../../ApiClient";
 import { useNavigate, useLocation } from "react-router-dom";
 import AlertDialogSlide from "./AlertDialogSlide";
 import { showAlertMessage } from "../../AlertMessage";
+import ClearIcon from "@mui/icons-material/Clear";
 
 const EmployeesList = () => {
   const [isAddEmployeeModalVisible, setIsAddEmployeeModalVisible] =
@@ -27,6 +31,9 @@ const EmployeesList = () => {
   const [employees, setEmployees] = useState([]);
   const designationsList = JSON.parse(localStorage.getItem("UserRoles") || "[]");
   const role_id = designationsList.find((item) => item.role_name === "Non_Teaching_Staff")?.role_id || null;
+  const [searchText, setSearchText] = useState("");
+  const [filteredList, setFilteredList] = useState([]);
+  const searchTimeoutRef = useRef(null);
 
 
   const navigate = useNavigate();
@@ -43,6 +50,7 @@ const EmployeesList = () => {
         });
         const userData = res?.data?.user_data || [];
         setEmployees(userData);
+        setFilteredList(userData);
       } catch (err) {
         console.error(err);
       } finally {
@@ -105,26 +113,28 @@ const EmployeesList = () => {
   // Filtering employees based on selected filter using useMemo
   const filteredEmployees = useMemo(() => {
     switch (selectedFilter) {
-      case "new":
+      case "new": {
         const today = new Date();
         const twoMonthsAgo = new Date();
-        twoMonthsAgo.setMonth(today.getMonth() - 3); // Changed to 3 months as per original logic
-        return employees.filter((employee) => {
-          const date_of_joining = new Date(employee.date_of_joining);
-          return date_of_joining >= twoMonthsAgo && date_of_joining <= today;
+        twoMonthsAgo.setMonth(today.getMonth() - 3);
+        return filteredList.filter((employee) => {
+          const doj = new Date(employee.date_of_joining);
+          return doj >= twoMonthsAgo && doj <= today;
         });
+      }
       case "active":
-        return employees.filter((employee) => employee.is_active);
+        return filteredList.filter((employee) => employee.is_active);
       case "inactive":
-        return employees.filter((employee) => !employee.is_active);
+        return filteredList.filter((employee) => !employee.is_active);
       case "teaching":
-        return employees.filter((employee) => employee.role_id === 3);
+        return filteredList.filter((employee) => employee.role_id === 3);
       case "nonteaching":
-        return employees.filter((employee) => employee.role_id !== 3);
+        return filteredList.filter((employee) => employee.role_id !== 3);
       default:
-        return employees;
+        return filteredList;
     }
-  }, [employees, selectedFilter]);
+  }, [filteredList, selectedFilter]);
+
 
   const getDeleteEmployee = () => {
     deleteUserInfo(selectedEmployeeDetails.user_id)
@@ -149,10 +159,57 @@ const EmployeesList = () => {
     navigate(`/profile/${encodeURIComponent(userData.user_id)}/${encodeURIComponent(userData.role_id)}`);
   };
 
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchText(value);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      if (value.trim() === "") {
+        setFilteredList(employees);
+      } else {
+        const lower = value.toLowerCase();
+        const filtered = employees.filter((emp) =>
+          (emp.name.toLowerCase().includes(lower) ||
+            emp.user_id?.toLowerCase().includes(lower))
+        );
+        setFilteredList(filtered);
+      }
+    }, 400);
+  };
+
+
   return (
     <>
       <Grid container justifyContent="space-between" alignItems="center">
         <BackButton />
+        <Grid item>
+          <TextField
+            fullWidth
+            label="Search by name or ID"
+            variant="outlined"
+            value={searchText}
+            onChange={handleSearch}
+            InputProps={{
+              endAdornment: searchText && (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => {
+                      setSearchText("");
+                      setFilteredList(employees);
+                    }}
+                    edge="end"
+                  >
+                    <ClearIcon />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Grid>
         <ToggleButtonGroup
           color="primary"
           value={selectedFilter}
