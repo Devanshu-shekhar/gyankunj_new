@@ -8,7 +8,6 @@ import {
   Button,
   Box,
   Paper,
-  Snackbar,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -17,14 +16,13 @@ import { saveAdmissionFeesInfo, updateUserInfo } from "../../../ApiClient";
 import dayjs from "dayjs";
 import StudentInfoForm from "./StudentInfoForm";
 import FeeDetailsForm from "./FeeDetailsForm";
+import BackButton from "../../../SharedComponents/BackButton";
 
 const steps = ["Personal Info", "Fees Details"];
 
 const AdmissionStepperPage = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [showAlert, setShowAlert] = useState("");
-  const [showSecondForm, setShowSecondForm] = useState(false);
-  const [isEmiApplicable, setIsEmiApplicable] = useState(true);
   const navigate = useNavigate();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   let selectedUserDetails = {};
@@ -158,7 +156,6 @@ const AdmissionStepperPage = () => {
           );
 
           setValueSecond("total_admission_charge", totalAdmissionCharge);
-          setShowSecondForm(true);
           setActiveStep(1);
           localStorage.removeItem("admission_metadata");
         }
@@ -200,6 +197,9 @@ const AdmissionStepperPage = () => {
 
   return (
     <Container>
+      <div className="mb-3">
+        <BackButton />
+      </div>
       <Paper elevation={3} sx={{ p: 3 }}>
         <Typography variant="h5" fontWeight="bold" mb={2}>
           {isEditMode ? "Edit Admission" : "Create New Admission"}
@@ -229,18 +229,17 @@ const AdmissionStepperPage = () => {
                 watch={watchSecond}
                 setValue={setValueSecond}
                 feesStructuresList={feesStructuresList}
-                isEmiApplicable={isEmiApplicable}
               />
             )}
           </Box>
 
           <Box mt={3} display="flex" justifyContent="space-between">
-            <Button
+            {/* <Button
               disabled={activeStep === 0}
               onClick={() => setActiveStep((prev) => prev - 1)}
             >
               Back
-            </Button>
+            </Button> */}
             {activeStep === steps.length - 1 ? (
               <Button type="submit" variant="contained">
                 Submit

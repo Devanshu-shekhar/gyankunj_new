@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Grid,
   TextField,
@@ -6,15 +6,53 @@ import {
   FormControlLabel,
   Checkbox,
   Typography,
+  MenuItem,
+  Tooltip,
+  InputLabel,
+  Box,
 } from "@mui/material";
 import { Controller } from "react-hook-form";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import dayjs from "dayjs";
 
-const FeeDetailsForm = ({ control, watch, feesStructuresList }) => {
+const FeeDetailsForm = ({ control, watch, setValue, feesStructuresList }) => {
   const isEmiEnabled = watch("is_emi_enabled");
+  const totalCharge = Number(watch("total_admission_charge") || 0);
+  const deposited = Number(watch("deposited_fees") || 0);
+  const discount = Number(watch("discounted_amount") || 0);
+
+  const showEmi = deposited + discount < totalCharge;
+
+  useEffect(() => {
+  if (isEmiEnabled && showEmi) {
+    const totalEmi = Math.max(totalCharge - deposited - discount, 0);
+    const installments = Number(watch("number_of_installments") || 0);
+    if (installments > 0) {
+      const perInstallment = totalEmi / installments;
+      setValue("installment_amount", parseFloat(perInstallment.toFixed(2)));
+    }
+  }
+}, [watch("number_of_installments")]);
+
+  // Reset EMI fields if EMI is disabled
+  useEffect(() => {
+    if (!isEmiEnabled) {
+      setValue("total_emi_amount", 0);
+      setValue("number_of_installments", "");
+      setValue("installment_amount", 0);
+      setValue("first_installment_due_date", null);
+    } else {
+      const totalEmi = Math.max(totalCharge - deposited - discount, 0);
+      const installments = Number(watch("number_of_installments") || 0);
+      setValue("total_emi_amount", totalEmi);
+      if (installments > 0) {
+        setValue("installment_amount", totalEmi / installments);
+      }
+    }
+  }, [isEmiEnabled, deposited, discount, totalCharge, watch, setValue]);
 
   return (
     <>
@@ -24,14 +62,15 @@ const FeeDetailsForm = ({ control, watch, feesStructuresList }) => {
 
       <div className="d-flex gap-4">
         {feesStructuresList?.length > 0 &&
-          feesStructuresList.map((item) => (
-            item.fee_frequency_id === 2 &&
+          feesStructuresList.map(
+            (item) =>
+              item.fee_frequency_id === 2 &&
               item.fee_occurrence_id === 1 && (
                 <div key={item.fee_type_name}>
                   <strong>{item.fee_type_name}</strong> : {item.charge}
                 </div>
               )
-          ))}
+          )}
       </div>
 
       <Grid container spacing={2} sx={{ mt: 1 }}>
@@ -40,7 +79,14 @@ const FeeDetailsForm = ({ control, watch, feesStructuresList }) => {
             name="user_id"
             control={control}
             render={({ field }) => (
-              <TextField {...field} label="User ID" fullWidth margin="normal" required disabled />
+              <TextField
+                {...field}
+                label="User ID"
+                fullWidth
+                margin="normal"
+                required
+                disabled
+              />
             )}
           />
         </Grid>
@@ -74,7 +120,9 @@ const FeeDetailsForm = ({ control, watch, feesStructuresList }) => {
                 label="Deposited Fees"
                 fullWidth
                 margin="normal"
-                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
+                onChange={(e) =>
+                  field.onChange(e.target.value ? Number(e.target.value) : "")
+                }
               />
             )}
           />
@@ -91,89 +139,128 @@ const FeeDetailsForm = ({ control, watch, feesStructuresList }) => {
                 label="Discounted Amount"
                 fullWidth
                 margin="normal"
-                onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : "")}
+                onChange={(e) =>
+                  field.onChange(e.target.value ? Number(e.target.value) : "")
+                }
               />
             )}
           />
         </Grid>
 
-        {/* EMI Toggle */}
-        <Grid item xs={12}>
-          <FormControl>
-            <Controller
-              name="is_emi_enabled"
-              control={control}
-              render={({ field }) => (
-                <FormControlLabel
-                  control={<Checkbox {...field} checked={field.value} />}
-                  label="Enable EMI"
-                />
-              )}
-            />
-          </FormControl>
-        </Grid>
+        {showEmi && (
+          <Grid item xs={12}>
+            <FormControl>
+              <Controller
+                name="is_emi_enabled"
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <FormControlLabel
+                      control={<Checkbox {...field} checked={field.value || false} />}
+                      label="Enable EMI"
+                    />
+                    <Typography variant="body2" color="textSecondary" sx={{ ml: 4 }}>
+                      Check this to split remaining fees into installments.
+                    </Typography>
+                  </>
+                )}
+              />
+            </FormControl>
+          </Grid>
+        )}
 
-        {/* EMI Fields */}
-        {isEmiEnabled && (
+        {isEmiEnabled && showEmi && (
           <>
+            {/* Total EMI Amount */}
             <Grid item xs={12} md={6}>
               <Controller
                 name="total_emi_amount"
                 control={control}
                 rules={{ required: "Total EMI Amount is required" }}
                 render={({ field, fieldState }) => (
-                  <TextField
-                    {...field}
-                    type="number"
-                    label="Total EMI Amount"
-                    fullWidth
-                    margin="normal"
-                    required
-                    error={!!fieldState.error}
-                    helperText={fieldState.error?.message}
-                    disabled
-                  />
+                  <>
+                    <Box display="flex" alignItems="center" gap={0.5}>
+                      <InputLabel>Total EMI Amount</InputLabel>
+                      <Tooltip title="Calculated automatically as Total - Deposited - Discount.">
+                        <InfoOutlinedIcon fontSize="small" color="action" />
+                      </Tooltip>
+                    </Box>
+                    <TextField
+                      {...field}
+                      type="number"
+                      fullWidth
+                      margin="dense"
+                      disabled
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message}
+                    />
+                  </>
                 )}
               />
             </Grid>
 
+            {/* Number of Installments */}
             <Grid item xs={12} md={6}>
               <Controller
                 name="number_of_installments"
                 control={control}
                 rules={{ required: "Number of Installments is required" }}
                 render={({ field, fieldState }) => (
-                  <TextField
-                    {...field}
-                    type="number"
-                    label="Number of Installments"
-                    fullWidth
-                    margin="normal"
-                    error={!!fieldState.error}
-                    helperText={fieldState.error?.message}
-                  />
+                  <>
+                    <Box display="flex" alignItems="center" gap={0.5}>
+                      <InputLabel>Number of Installments</InputLabel>
+                      <Tooltip title="Choose how many months to divide the EMI.">
+                        <InfoOutlinedIcon fontSize="small" color="action" />
+                      </Tooltip>
+                    </Box>
+                    <TextField
+                      {...field}
+                      select
+                      fullWidth
+                      margin="dense"
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message}
+                    >
+                      {[3, 6, 12].map((val) => (
+                        <MenuItem key={val} value={val}>
+                          {val}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </>
                 )}
               />
             </Grid>
 
+            {/* Installment Amount */}
             <Grid item xs={12} md={6}>
               <Controller
                 name="installment_amount"
                 control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    type="number"
-                    label="Installment Amount"
-                    fullWidth
-                    margin="normal"
-                    required
-                    disabled
-                  />
+                rules={{ required: "Installment Amount is required" }}
+                render={({ field, fieldState }) => (
+                  <>
+                    <Box display="flex" alignItems="center" gap={0.5}>
+                      <InputLabel>Installment Amount</InputLabel>
+                      <Tooltip title="Auto-calculated per installment amount.">
+                        <InfoOutlinedIcon fontSize="small" color="action" />
+                      </Tooltip>
+                    </Box>
+                    <TextField
+                      {...field}
+                      type="number"
+                      fullWidth
+                      margin="dense"
+                      disabled
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message}
+                    />
+                  </>
                 )}
               />
             </Grid>
 
+            {/* First Installment Due Date */}
             <Grid item xs={12} md={6}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <Controller
@@ -181,19 +268,27 @@ const FeeDetailsForm = ({ control, watch, feesStructuresList }) => {
                   control={control}
                   rules={{ required: "First Installment Due Date is required" }}
                   render={({ field, fieldState }) => (
-                    <DatePicker
-                      label="First Installment Due Date"
-                      value={field.value || null}
-                      onChange={field.onChange}
-                      format="YYYY-MM-DD"
-                      slotProps={{
-                        textField: {
-                          fullWidth: true,
-                          error: !!fieldState.error,
-                          helperText: fieldState.error?.message,
-                        },
-                      }}
-                    />
+                    <>
+                      <Box display="flex" alignItems="center" gap={0.5}>
+                        <InputLabel>First Installment Due Date</InputLabel>
+                        <Tooltip title="Select the start date for EMI payments.">
+                          <InfoOutlinedIcon fontSize="small" color="action" />
+                        </Tooltip>
+                      </Box>
+                      <DatePicker
+                        value={field.value ? dayjs(field.value) : null}
+                        onChange={field.onChange}
+                        format="YYYY-MM-DD"
+                        slotProps={{
+                          textField: {
+                            fullWidth: true,
+                            error: !!fieldState.error,
+                            helperText: fieldState.error?.message,
+                            margin: "dense",
+                          },
+                        }}
+                      />
+                    </>
                   )}
                 />
               </LocalizationProvider>
