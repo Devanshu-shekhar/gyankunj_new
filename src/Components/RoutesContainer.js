@@ -58,6 +58,7 @@ import SchoolDiaryView from "./Student/SchoolDiary/SchoolDiaryView";
 import EmployeeAttendanceView from "./Principal/HRMS/EmployeeAttendanceView";
 import UserCalendar from "./UserCalendar";
 import SchoolConfiguration from "./Principal/School/SchoolConfiguration";
+import AdmissionStepperPage from "./Principal/Admission/AdmissionStepperPage";
 
 // Define routes for different user roles
 const roleRoutes = {
@@ -152,6 +153,10 @@ export default function RoutesContainer({ userData, mainContainerRef }) {
                 <Route
                   path="/principalDashboard/admissionView"
                   element={<ProtectedWrapper Component={AdmissionView} />}
+                />
+                <Route
+                  path="/principalDashboard/admissionView/create-admission"
+                  element={<ProtectedWrapper Component={AdmissionStepperPage} />}
                 />
                 <Route
                   path="/principalDashboard/hrmsPortal/attendanceView"

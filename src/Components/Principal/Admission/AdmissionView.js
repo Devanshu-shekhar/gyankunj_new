@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { Box, Button, CircularProgress, Grid, IconButton, InputAdornment, TextField } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import CreateAdmission from "./CreateAdmission";
 import {
   deleteUserInfo,
   fetchFeesStructuresList,
@@ -12,14 +11,15 @@ import AlertDialogSlide from "../HRMS/AlertDialogSlide";
 import { showAlertMessage } from "../../AlertMessage";
 import UserCard from "./UserCard";
 import ClearIcon from "@mui/icons-material/Clear";
+import { use } from "react";
+import { set } from "react-hook-form";
 
 const AdmissionView = () => {
   const searchTimeoutRef = useRef(null);
-  const [isAddUserModalVisible, setIsAddUserModalVisible] =
-    useState(false);
   const [refreshView, setRefreshView] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpenConfirmDialog, setIsOpenConfirmDialog] = useState(false);
+  const [isReadyToCreasteAdmission, setIsReadyToCreasteAdmission] = useState(false);
   const [showAlert, setShowAlert] = useState("");
   const [selectedUserDetails, setSelectedUserDetails] = useState(null);
   const [usersList, setUsersList] = useState([]);
@@ -120,14 +120,14 @@ const AdmissionView = () => {
       }
     };
     fetchUsersList();
-  }, [refreshView]);
+  }, [refreshView, role_id]);
 
   // Handling action with useCallback to prevent unnecessary re-renders
   const handleAction = useCallback((data, action) => {
     switch (action) {
       case "edit":
         setSelectedUserDetails(data);
-        setIsAddUserModalVisible(true);
+        setIsReadyToCreasteAdmission(true);
         break; // Using break instead of return for clarity
 
       case "delete":
@@ -140,14 +140,23 @@ const AdmissionView = () => {
     }
   }, []);
 
-  const handleClose = (isSubmit) => {
-    setIsAddUserModalVisible(false);
-    setSelectedUserDetails(null);
-    if (isSubmit) {
-      // Debounce the refresh to avoid excessive rerenders
-      setTimeout(() => setRefreshView((prev) => !prev), 500);
-    }
+  useEffect(() => {
+    if (!isReadyToCreasteAdmission) return;
+    handleOpenAdmissionPage();
+  }, [isReadyToCreasteAdmission]);
+
+  const handleOpenAdmissionPage = () => {
+    debugger;
+    localStorage.removeItem("admission_metadata");
+    localStorage.setItem("admission_metadata", JSON.stringify({
+      selectedUserDetails,
+      metadataList,
+      feesStructuresList,
+      role_id
+    }));
+    navigate("/principalDashboard/admissionView/create-admission");
   };
+
 
   // Confirmation dialog
   const closeDialog = (isConfirmed) => {
@@ -267,16 +276,6 @@ const AdmissionView = () => {
           </Box>
         )}
       </Grid>
-      {isAddUserModalVisible && (
-        <CreateAdmission
-          isOpen={isAddUserModalVisible}
-          handleClose={handleClose}
-          selectedData={selectedUserDetails}
-          metadataList={metadataList}
-          feesStructuresList={feesStructuresList}
-          role_id={role_id}
-        />
-      )}
 
       {/* Confirmation Dialog */}
       <AlertDialogSlide
