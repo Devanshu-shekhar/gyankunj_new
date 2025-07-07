@@ -12,18 +12,27 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { showAlertMessage } from "../../AlertMessage";
-import { saveAdmissionFeesInfo, updateUserInfo } from "../../../ApiClient";
+import {
+  fetchPaymentModes,
+  makeDepositPayment,
+  saveAdmissionFeesInfo,
+  updateUserInfo,
+} from "../../../ApiClient";
 import dayjs from "dayjs";
 import StudentInfoForm from "./StudentInfoForm";
 import FeeDetailsForm from "./FeeDetailsForm";
 import BackButton from "../../../SharedComponents/BackButton";
+import CollectDepositForm from "./CollectDepositForm";
+import { use } from "react";
 
-const steps = ["Personal Info", "Fees Details"];
+const steps = ["Personal Info", "Fees Details", "Collect Deposit"];
 
 const AdmissionStepperPage = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [showAlert, setShowAlert] = useState("");
   const navigate = useNavigate();
+  const [paymentModes, setPaymentModes] = useState([]);
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   let selectedUserDetails = {};
   let metadataList = {};
@@ -42,6 +51,19 @@ const AdmissionStepperPage = () => {
       console.error("Failed to parse admission_metadata from localStorage", err);
     }
   }
+
+  useEffect(() => {
+    fetchPaymentModesList();
+  }, []);
+
+  const fetchPaymentModesList = async () => {
+    try {
+      const response = await fetchPaymentModes();
+      setPaymentModes(response.data.payment_modes || []);
+    } catch (err) {
+      console.error("Failed to fetch payment modes:", err);
+    }
+  };
 
   const {
     control,
@@ -111,6 +133,21 @@ const AdmissionStepperPage = () => {
     },
   });
 
+  const {
+    control: controlThird,
+    handleSubmit: handleSubmitThird,
+    reset: resetThird,
+    watch: watchThird,
+    setValue: setValueThird,
+  } = useForm({
+    defaultValues: {
+      user_id: "",
+      payment_mode_id: "",
+      transaction_id: "",
+      transaction_amount: 0,
+    },
+  });
+
   const isEditMode = Object.keys(selectedUserDetails).length > 0;
 
   useEffect(() => {
@@ -146,6 +183,7 @@ const AdmissionStepperPage = () => {
           const match = res?.data.message?.match(/afs\/\d+\/\d+\/\d+/);
           const studentId = match ? match[0] : null;
           setValueSecond("user_id", studentId);
+          setValueThird("user_id", studentId);
 
           const totalAdmissionCharge = feesStructuresList.reduce(
             (sum, item) =>
@@ -156,6 +194,7 @@ const AdmissionStepperPage = () => {
           );
 
           setValueSecond("total_admission_charge", totalAdmissionCharge);
+          setValueThird("transaction_amount", totalAdmissionCharge);
           setActiveStep(1);
           localStorage.removeItem("admission_metadata");
         }
@@ -180,6 +219,30 @@ const AdmissionStepperPage = () => {
     };
 
     saveAdmissionFeesInfo(payload)
+      .then((res) => {
+        setShowAlert(res?.data?.status === "success" ? "success" : "error");
+        setTimeout(() => {
+          if (res?.data?.status === "success") {
+            setActiveStep(2);
+          }
+          setShowAlert("");
+        }, 1500);
+      })
+      .catch(() => {
+        setShowAlert("error");
+        setTimeout(() => setShowAlert(""), 3000);
+      });
+  };
+
+  const onSubmitThird = (data) => {
+    const payload = {
+      user_id: data.user_id,
+      payment_mode_id: data.payment_mode_id,
+      transaction_id: data.transaction_id,
+      transaction_amount: data.transaction_amount,
+    };
+
+    makeDepositPayment(payload)
       .then((res) => {
         setShowAlert(res?.data?.status === "success" ? "success" : "error");
         setTimeout(() => {
@@ -213,7 +276,15 @@ const AdmissionStepperPage = () => {
           ))}
         </Stepper>
 
-        <form onSubmit={activeStep === 0 ? handleSubmit(onSubmit) : handleSubmitSecond(onSubmitSecond)}>
+        <form
+          onSubmit={
+            activeStep === 0
+              ? handleSubmit(onSubmit)
+              : activeStep === 1
+              ? handleSubmitSecond(onSubmitSecond)
+              : handleSubmitThird(onSubmitThird)
+          }
+        >
           <Box mt={3}>
             {activeStep === 0 ? (
               <StudentInfoForm
@@ -223,23 +294,25 @@ const AdmissionStepperPage = () => {
                 reset={reset}
                 setValue={setValue}
               />
-            ) : (
+            ) : activeStep === 1 ? (
               <FeeDetailsForm
                 control={controlSecond}
                 watch={watchSecond}
                 setValue={setValueSecond}
                 feesStructuresList={feesStructuresList}
               />
+            ) : (
+              <CollectDepositForm
+                control={controlThird}
+                watch={watchThird}
+                setValue={setValueThird}
+                depositAmount={watchSecond("deposited_fees")}
+                paymentModes={paymentModes || []}
+              />
             )}
           </Box>
 
           <Box mt={3} display="flex" justifyContent="space-between">
-            {/* <Button
-              disabled={activeStep === 0}
-              onClick={() => setActiveStep((prev) => prev - 1)}
-            >
-              Back
-            </Button> */}
             {activeStep === steps.length - 1 ? (
               <Button type="submit" variant="contained">
                 Submit
@@ -252,14 +325,15 @@ const AdmissionStepperPage = () => {
           </Box>
         </form>
 
-        {showAlert && showAlertMessage({
-          open: true,
-          alertFor: showAlert,
-          message:
-            showAlert === "success"
-              ? "Admission Created successfully!"
-              : "Failed to create admission.",
-        })}
+        {showAlert &&
+          showAlertMessage({
+            open: true,
+            alertFor: showAlert,
+            message:
+              showAlert === "success"
+                ? "Admission Created successfully!"
+                : "Failed to create admission.",
+          })}
       </Paper>
     </Container>
   );

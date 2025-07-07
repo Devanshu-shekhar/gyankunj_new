@@ -19,8 +19,6 @@ const StudentInfoForm = ({ control, metadataList, watch, reset, setValue }) => {
   const anyKnownIllness = watch("any_known_illness");
   const primaryPhone = watch("primary_phone");
 
-  const fatherName = watch("father_name");
-  const motherName = watch("mother_name");
   const fatherPhone = watch("father_phone");
   const motherPhone = watch("mother_phone");
 
@@ -66,7 +64,7 @@ const StudentInfoForm = ({ control, metadataList, watch, reset, setValue }) => {
       { name: "type_of_illness", label: "Type Of Illness", type: "text" },
     ],
     "Parent Details": [
-      { name: "father_name", label: "Father Name", type: "text" },
+      { name: "father_name", label: "Father Name", type: "text", required: true },
       { name: "father_email_id", label: "Father Email", type: "email" },
       {
         name: "father_dob",
@@ -79,7 +77,7 @@ const StudentInfoForm = ({ control, metadataList, watch, reset, setValue }) => {
       { name: "father_occupation", label: "Father Occupation", type: "text" },
       { name: "father_phone", label: "Father Phone", type: "number", isPrimary: true },
       { name: "office_address", label: "Office Address", type: "text", multiline: true },
-      { name: "mother_name", label: "Mother Name", type: "text" },
+      { name: "mother_name", label: "Mother Name", type: "text", required: true },
       { name: "mother_email_id", label: "Mother Email", type: "email" },
       {
         name: "mother_dob",
@@ -233,15 +231,11 @@ const StudentInfoForm = ({ control, metadataList, watch, reset, setValue }) => {
                         required:
                           fieldItem.name === "type_of_illness"
                             ? anyKnownIllness && "Type of illness is required"
-                            : fieldItem.name === "father_name"
-                              ? !motherName && "Father Name is required if Mother Name is not provided"
-                              : fieldItem.name === "mother_name"
-                                ? !fatherName && "Mother Name is required if Father Name is not provided"
-                                : fieldItem.name === "father_phone"
-                                  ? !motherPhone && "Father Phone is required if Mother Phone is not provided"
-                                  : fieldItem.name === "mother_phone"
-                                    ? !fatherPhone && "Mother Phone is required if Father Phone is not provided"
-                                    : fieldItem.required,
+                            : fieldItem.name === "father_phone"
+                              ? !motherPhone && "Father Phone is required if Mother Phone is not provided"
+                              : fieldItem.name === "mother_phone"
+                                ? !fatherPhone && "Mother Phone is required if Father Phone is not provided"
+                                : fieldItem.required,
                         pattern:
                           fieldItem.name.includes("phone")
                             ? {

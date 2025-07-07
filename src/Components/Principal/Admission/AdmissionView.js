@@ -146,7 +146,6 @@ const AdmissionView = () => {
   }, [isReadyToCreasteAdmission]);
 
   const handleOpenAdmissionPage = () => {
-    debugger;
     localStorage.removeItem("admission_metadata");
     localStorage.setItem("admission_metadata", JSON.stringify({
       selectedUserDetails,
