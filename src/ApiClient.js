@@ -556,6 +556,10 @@ const createHoliday = (payload) => {
   return apiInstance.post(`/create_holiday`, payload);
 };
 
+const makeDepositPayment = (payload) => {
+  return apiInstance.post(`/make_deposit_payment`, payload);
+}
+
 
 export {
   //loginUser,
@@ -674,5 +678,6 @@ export {
   makeAdmissionFeePayment,
   viewStudentAttendanceReport,
   viewStaffAttendanceReport,
-  createHoliday
+  createHoliday,
+  makeDepositPayment
 };

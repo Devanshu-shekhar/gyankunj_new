@@ -221,7 +221,7 @@ const FeeDetailsForm = ({ control, watch, setValue, feesStructuresList }) => {
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
                     >
-                      {[3, 6, 12].map((val) => (
+                      {[3, 6, 9, 12].map((val) => (
                         <MenuItem key={val} value={val}>
                           {val}
                         </MenuItem>
