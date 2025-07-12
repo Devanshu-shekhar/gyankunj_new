@@ -15,9 +15,12 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Box,
+  Chip,
 } from "@mui/material";
-import { updateVehicles } from "../../../../ApiClient";
+import { createVehicleType, getAllVehicleTypes, updateVehicles } from "../../../../ApiClient";
 import dayjs from "dayjs";
+import { showAlertMessage } from "../../../AlertMessage";
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialogContent-root": {
@@ -28,14 +31,14 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
     padding: theme.spacing(1),
   },
   "& .MuiDialog-paper": {
-    maxWidth: "90%",
-    width: "75%",
+    maxWidth: "50%",
+    width: "500px",
     height: "100%",
     overflow: "hidden",
   },
 }));
 
-const CreateVehicle = ({ isOpen, handleClose, vehicleTypes = [], initialData = null }) => {
+const CreateVehicle = ({ isOpen, handleClose, initialData = null }) => {
   const {
     handleSubmit,
     control,
@@ -53,12 +56,31 @@ const CreateVehicle = ({ isOpen, handleClose, vehicleTypes = [], initialData = n
   });
 
   const [showAlert, setShowAlert] = useState("");
+  const [showAlertForVehicleType, setShowAlertForVehicleType] = useState("");
+  const [isVehicleTypeModalVisible, setIsVehicleTypeModalVisible] = useState(false);
+  const [newVehicleTypes, setNewVehicleTypes] = useState([]);
+  const [vehicleTypes, setVehicleTypes] = useState([]);
+  const [vehicleTypeInput, setVehicleTypeInput] = useState("");
+  const [refreshVehicleTypeList, setRefreshVehicleTypeList] = useState(false);
 
   useEffect(() => {
     if (initialData) {
       reset(initialData);
     }
   }, [initialData, reset]);
+
+  useEffect(() => {
+    getAllVehicleTypes()
+      .then((res) => {
+        setVehicleTypes([]);
+        if (res?.data?.vehicle_types_data?.length > 0) {
+          setVehicleTypes(res.data.vehicle_types_data);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, [refreshVehicleTypeList]);
 
   const onSubmit = (data) => {
     console.log("Form Data Submitted:", data);
@@ -85,6 +107,57 @@ const CreateVehicle = ({ isOpen, handleClose, vehicleTypes = [], initialData = n
       });
   };
 
+  const handleVehicleTypeModalClose = () => {
+    setIsVehicleTypeModalVisible(false);
+    setNewVehicleTypes([]);
+    setVehicleTypeInput("");
+  };
+
+  const handleSaveVehicleTypes = () => {
+    const payload = {
+      vehicle_types: newVehicleTypes,
+    };
+
+    // Mock API call to save vehicle types
+    console.log("Saving Vehicle Types: ", payload);
+
+    createVehicleType(payload)
+      .then((res) => {
+        if (res?.data?.status === "success") {
+          setShowAlertForVehicleType("success");
+          setRefreshVehicleTypeList(!refreshVehicleTypeList);
+          handleVehicleTypeModalClose();       
+        } else {
+          setShowAlertForVehicleType("error");
+        }
+        setTimeout(() => {
+          setTimeout(() => {
+            setShowAlertForVehicleType("");
+          }, 2000);
+        }, 1000);
+      })
+      .catch((err) => {
+        setShowAlertForVehicleType("error");
+        setTimeout(() => {
+          setShowAlertForVehicleType("");
+        }, 3000);
+      });
+  };
+
+  const handleAddVehicleType = () => {
+    if (
+      vehicleTypeInput.trim() &&
+      !newVehicleTypes.includes(vehicleTypeInput)
+    ) {
+      setNewVehicleTypes((prev) => [...prev, vehicleTypeInput.trim()]);
+      setVehicleTypeInput("");
+    }
+  };
+
+  const handleDeleteVehicleTypeChip = (chipToDelete) => {
+    setNewVehicleTypes((prev) => prev.filter((chip) => chip !== chipToDelete));
+  };
+
   return (
     <React.Fragment>
       <BootstrapDialog
@@ -93,7 +166,7 @@ const CreateVehicle = ({ isOpen, handleClose, vehicleTypes = [], initialData = n
         scroll="paper"
       >
         <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
-          {initialData?.vehicle_id?'Edit': 'Create'} Vehicle
+          {initialData?.vehicle_id ? 'Edit' : 'Create'} Vehicle
         </DialogTitle>
         <IconButton
           aria-label="close"
@@ -168,6 +241,12 @@ const CreateVehicle = ({ isOpen, handleClose, vehicleTypes = [], initialData = n
                             {type.vehicle_type}
                           </MenuItem>
                         ))}
+                        <MenuItem
+                          value=""
+                          onClick={() => setIsVehicleTypeModalVisible(true)}
+                        >
+                          <em>Add New Vehicle Type</em>
+                        </MenuItem>
                       </Select>
                     )}
                   />
@@ -260,14 +339,97 @@ const CreateVehicle = ({ isOpen, handleClose, vehicleTypes = [], initialData = n
           </DialogActions>
         </form>
       </BootstrapDialog>
-
-      {showAlert && (
-        <div>
-          {showAlert === "success"
-            ? "Vehicle update succeeded!"
-            : "Vehicle update failed!"}
-        </div>
+      {isVehicleTypeModalVisible && (
+        <Dialog
+          open={isVehicleTypeModalVisible}
+          onClose={handleVehicleTypeModalClose}
+          minWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>Create Vehicle Type</DialogTitle>
+          <DialogContent>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                flexWrap: "wrap",
+                marginBottom: 2,
+              }}
+            >
+              {newVehicleTypes.map((type, index) => (
+                <Chip
+                  key={index}
+                  label={type}
+                  onDelete={() => handleDeleteVehicleTypeChip(type)}
+                  color="primary"
+                />
+              ))}
+            </Box>
+            <TextField
+              label="Add Vehicle Type"
+              fullWidth
+              value={vehicleTypeInput}
+              error={vehicleTypes?.some(
+                (type) =>
+                  type.vehicle_type.toLowerCase() ===
+                  vehicleTypeInput.trim().toLowerCase()
+              )}
+              helperText={
+                vehicleTypes?.some(
+                  (type) =>
+                    type.vehicle_type.toLowerCase() ===
+                    vehicleTypeInput.trim().toLowerCase()
+                )
+                  ? "The vehicle type you entered already exists."
+                  : ""
+              }
+              onChange={(e) => setVehicleTypeInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (
+                  e.key === "Enter" &&
+                  !vehicleTypes?.some(
+                    (type) =>
+                      type.vehicle_type.toLowerCase() ===
+                      vehicleTypeInput.trim().toLowerCase()
+                  )
+                ) {
+                  handleAddVehicleType();
+                }
+              }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleVehicleTypeModalClose}>Cancel</Button>
+            <Button
+              variant="contained"
+              onClick={handleSaveVehicleTypes}
+              disabled={newVehicleTypes.length === 0}
+            >
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
       )}
+
+      {showAlert &&
+        showAlertMessage({
+          open: true,
+          alertFor: showAlert,
+          message: `Vehicle updation ${showAlert === "success" ? "succeeded" : "failed"
+            }.`,
+        })
+      }
+
+      {showAlertForVehicleType &&
+        showAlertMessage({
+          open: true,
+          alertFor: showAlertForVehicleType,
+          message: `Vehicle type creation ${showAlertForVehicleType === "success" ? "succeeded" : "failed"
+            }.`,
+        })
+      }
+
     </React.Fragment>
   );
 };
