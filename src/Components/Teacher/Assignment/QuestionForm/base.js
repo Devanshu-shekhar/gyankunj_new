@@ -273,7 +273,7 @@ const BaseQuestion = (props) => {
   };
   return (
     <>
-      <button type="button" class="btn btn-primary h-50" onClick={handleShow}>
+      <button type="button" className="btn btn-primary h-50" onClick={handleShow}>
         <b>+</b> New Question
       </button>
       <Modal show={showQuestionModal} onHide={handleClose}>
@@ -359,38 +359,36 @@ const BaseQuestion = (props) => {
 
                   {single ? (
                     data?.options.map((item, i) => (
-                      <>
-                        <Row>
-                          <Col md={7}>
-                            <Form.Group className="mb-3" controlId="marks">
-                              <Form.Control
-                                type="text"
-                                onChange={(e) =>
-                                  handleInputChange(i, e.target.value)
-                                }
-                                placeholder="Enter option..."
-                                size="sm"
-                                className="option"
-                                required
-                                value={item.value}
-                                autoComplete="off"
-                              />
-                            </Form.Group>
-                          </Col>
-                          <Col md={5}>
-                            {data?.options.length > 1 && (
-                              <Button
-                                size="sm"
-                                variant="outline-primary"
-                                className="delete_btn"
-                                onClick={() => deleteOption(item.id)}
-                              >
-                                <BsTrash />
-                              </Button>
-                            )}
-                          </Col>
-                        </Row>
-                      </>
+                      <Row key={item.id + i + 'single'}>
+                        <Col md={7}>
+                          <Form.Group className="mb-3" controlId="marks">
+                            <Form.Control
+                              type="text"
+                              onChange={(e) =>
+                                handleInputChange(i, e.target.value)
+                              }
+                              placeholder="Enter option..."
+                              size="sm"
+                              className="option"
+                              required
+                              value={item.value}
+                              autoComplete="off"
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col md={5}>
+                          {data?.options.length > 1 && (
+                            <Button
+                              size="sm"
+                              variant="outline-primary"
+                              className="delete_btn"
+                              onClick={() => deleteOption(item.id)}
+                            >
+                              <BsTrash />
+                            </Button>
+                          )}
+                        </Col>
+                      </Row>
                     ))
                   ) : (
                     <></>
@@ -414,7 +412,7 @@ const BaseQuestion = (props) => {
                   ) : null}
                   {multi ? (
                     data?.options.map((item, i) => (
-                      <Row>
+                      <Row key={item.id + i + 'multi'}>
                         <Col md={8}>
                           <Form.Group className="mb-3" controlId="marks">
                             <Form.Control
@@ -470,7 +468,7 @@ const BaseQuestion = (props) => {
                   ) : null}
                   {fill ? (
                     data?.options.map((item, i) => (
-                      <Row>
+                      <Row key={item.id + i + 'fill'}>
                         <Col md={7}>
                           <Form.Group className="mb-3" controlId="marks">
                             <Form.Control
