@@ -3,7 +3,6 @@ import { Button, Modal, Row, Col } from "react-bootstrap";
 import { loadAssignmentData, submitStudentAssignment } from "../../../ApiClient";
 import "./studentAssignment.css";
 import { showAlertMessage } from "../../AlertMessage";
-import { usePrompt } from "./usePrompt";
 
 const AssignmentSheet = (props) => {
   console.log("Assignment Status:", props.assignmentStatus);
@@ -278,42 +277,6 @@ const AssignmentSheet = (props) => {
       saveOrSubmitAssignment(true);
     }
   }, [timeLeft, props.assignmentType, assignmentStatus]);
-
-
-  const isTestMode = props.assignmentType === "Test" && !props.assignmentStatus;
-  usePrompt("Are you sure you want to leave this test?", isTestMode);
-
-  useEffect(() => {
-    const handleBeforeUnload = (e) => {
-      if (isTestMode) {
-        const message = "Are you sure you want to leave this test?";
-        e.preventDefault();
-        e.returnValue = message;
-        return message;
-      }
-    };
-
-    const handlePopState = (e) => {
-      if (isTestMode) {
-        const confirmLeave = window.confirm("Are you sure you want to leave this test?");
-        if (!confirmLeave) {
-          window.history.pushState(null, null, window.location.pathname);
-        }
-      }
-    };
-
-    if (isTestMode) {
-      window.history.pushState(null, null, window.location.pathname);
-      window.addEventListener("beforeunload", handleBeforeUnload);
-      window.addEventListener("popstate", handlePopState);
-    }
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, [isTestMode]);
-
 
 
   return (
