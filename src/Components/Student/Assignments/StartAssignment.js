@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Button, Modal, Row, Col } from "react-bootstrap";
-import { loadAssignmentData } from "../../../ApiClient";
+import { loadAssignmentData, submitStudentAssignment } from "../../../ApiClient";
 import "./studentAssignment.css";
+import { showAlertMessage } from "../../AlertMessage";
 
 const AssignmentSheet = (props) => {
   console.log("Assignment Status:", props.assignmentStatus);
@@ -19,35 +20,17 @@ const AssignmentSheet = (props) => {
   const [timeLeft, setTimeLeft] = useState(null);
   const [showTimeWarning, setShowTimeWarning] = useState(false);
   const [showSubmitWarning] = useState(false);
+  const [elapsedTimes, setElapsedTimes] = useState({});
+  const { assignmentStatus } = props;
+  const [showAlert, setShowAlert] = useState("");
+  const [showStatusMessage, setShowAlertMessage] = useState("");
 
   useEffect(() => {
     fetchAssignmentData();
   }, []);
-  const [showInstructionsModal, setShowInstructionsModal] = useState(false);
-  const [instructionsClosed, setInstructionsClosed] = useState(false);
-  const [elapsedTimes, setElapsedTimes] = useState({});
-  const { assignmentStatus } = props;
-  const token = JSON.parse(localStorage.getItem("UserData"));
-  const tokenId = token?.token;
 
   const areFieldsDisabled = () => {
     return assignmentStatus;
-  };
-
-  useEffect(() => {
-    if (props.assignmentType === "Test") {
-      setShowInstructionsModal(true);
-    } else {
-      setInstructionsClosed(true);
-    }
-  }, []);
-
-  const instructions =
-    "You cannot switch tabs, and we are monitoring your activity.";
-
-  const handleCloseInstructions = () => {
-    setShowInstructionsModal(false);
-    setInstructionsClosed(true);
   };
 
   useEffect(() => {
@@ -250,51 +233,32 @@ const AssignmentSheet = (props) => {
       submit_data: submit,
     };
 
-    
-    fetch("http://3.6.167.80:5005/submit_assignment", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "x-access-tokens": tokenId,
-      },
-      body: JSON.stringify(requestBody),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        if (!submit) {
-          props.setAssignmentFullList((prevState) => ({
-            ...prevState,
-            student_assignments: prevState.student_assignments.map(
-              (assignment) => {
-                if (assignment.assignment_id === props.assignmentId) {
-                  return {
-                    ...assignment,
-                    assignment_status: "Inprogress",
-                  };
-                }
-                return assignment;
-              }
-            ),
-          }));
-        }
-        return response.json();
-      })
-      .then((data) => {
-        if (submit) {
-          console.log("Assignment submitted successfully:", data);
+    console.log("Request Body:", requestBody);
+
+    submitStudentAssignment(requestBody)
+      .then((res) => {
+        if (res?.data?.status === "success") {
+          setShowAlert("success");
+          setShowAlertMessage(res?.data?.message || "Assignment saved successfully!");
         } else {
-          console.log("Progress saved successfully:", data);
+          setShowAlert("error");
+          setShowAlertMessage(res?.data?.message || "Failed to save assignment.");
         }
-        window.location.href = "/studentDashboard/assignments";
+        setTimeout(() => {
+          props.onHide(true);
+          setTimeout(() => {
+            setShowAlert("");
+            setShowAlertMessage("");
+          }, 2000);
+        }, 1000);
       })
-      .catch((error) => {
-        if (submit) {
-          console.error("Error submitting assignment:", error);
-        } else {
-          console.error("Error saving progress:", error);
-        }
+      .catch((err) => {
+        setShowAlert("error");
+        setShowAlertMessage("Failed to save assignment.");
+        setTimeout(() => {
+          setShowAlert("");
+          setShowAlertMessage("");
+        }, 3000);
       });
   };
 
@@ -307,242 +271,247 @@ const AssignmentSheet = (props) => {
     }
   }, [timeLeft, props.assignmentType]);
 
+  useEffect(() => {
+    if (timeLeft === 0 && props.assignmentType === "Test" && !assignmentStatus) {
+      console.log("Time's up! Auto-submitting...");
+      saveOrSubmitAssignment(true);
+    }
+  }, [timeLeft, props.assignmentType, assignmentStatus]);
+
+
   return (
     <>
-      {instructionsClosed && (
-        <Modal
-          className="ModalBody"
-          {...props}
-          fullscreen={fullscreen}
-          aria-labelledby="contained-modal-title-vcenter"
-          centered
-          style={{ backgroundColor: "#E1E9F3" }}
+      <Modal
+        className="ModalBody"
+        {...props}
+        fullscreen={fullscreen}
+        aria-labelledby="contained-modal-title-vcenter"
+        centered
+        style={{ backgroundColor: "#E1E9F3" }}
+      >
+        <Modal.Header
+          closeButton
+          style={{
+            background: "#7A9ABF 0% 0% no-repeat padding-box",
+            borderRadius: "4px 4px 0px 0px",
+            opacity: "1",
+          }}
         >
-          <Modal.Header
-            closeButton
-            style={{
-              background: "#7A9ABF 0% 0% no-repeat padding-box",
-              borderRadius: "4px 4px 0px 0px",
-              opacity: "1",
-            }}
-          >
-            <Col md={8} className="assignmentName">
-              Name of the assignment: <b>{props?.assignmentName}</b>
-            </Col>
-            <Col md={4} className="assignmentName">
-              {!props.assignmentStatus && props.assignmentType !== "Test" && (
-                <Button
-                  variant="primary"
-                  onClick={() => saveOrSubmitAssignment(false)}
-                >
-                  Save Progress
-                </Button>
-              )}
-            </Col>
-
-            {showSubmitWarning && (
-              <div className="submit-warning">
-                <p>Your assignment will be auto-submitted in a few seconds.</p>
-              </div>
+          <Col md={8} className="assignmentName">
+            Name of the assignment: <b>{props?.assignmentName}</b>
+          </Col>
+          <Col md={4} className="assignmentName">
+            {!props.assignmentStatus && props.assignmentType !== "Test" && (
+              <Button
+                variant="primary"
+                onClick={() => saveOrSubmitAssignment(false)}
+              >
+                Save Progress
+              </Button>
             )}
-          </Modal.Header>
+          </Col>
+
+          {showSubmitWarning && (
+            <div className="submit-warning">
+              <p>Your assignment will be auto-submitted in a few seconds.</p>
+            </div>
+          )}
+        </Modal.Header>
+        <Modal.Body>
           <Modal.Body>
-            <Modal.Body>
-              <div className="assignmentNameHeader">
-                {props.assignmentType === "Test" && (
-                  <Row>
-                    <Col md={2} className="assignmentName">
-                      <div className="duration-container">
-                        {timeLeft > 0 ? (
-                          <>
-                            <div className="duration-text">
-                              Duration: {formatTime(timeLeft)}
-                            </div>
-                          </>
-                        ) : (
-                          <div>Time's up!</div>
-                        )}
+            <div className="assignmentNameHeader">
+              {props.assignmentType === "Test" && (
+                <Row>
+                  <Col md={2} className="assignmentName">
+                    <div className="duration-container">
+                      {timeLeft > 0 ? (
+                        <>
+                          <div className="duration-text">
+                            Duration: {formatTime(timeLeft)}
+                          </div>
+                        </>
+                      ) : (
+                        <div>Time's up!</div>
+                      )}
+                    </div>
+                  </Col>
+                  {timeLeft > 0 && (
+                    <Col md={10} className="progress-ring">
+                      <div className="progress-ring">
+                        <svg
+                          className="progress-circle"
+                          width="60"
+                          height="60"
+                        >
+                          <circle
+                            className="progress-circle"
+                            stroke="#4CAF50"
+                            strokeWidth="8"
+                            fill="transparent"
+                            r="26"
+                            cx="30"
+                            cy="30"
+                            style={{
+                              strokeDasharray: 2 * Math.PI * 26,
+                              strokeDashoffset: `calc(${2 * Math.PI * 26
+                                } - (${2 * Math.PI * 26} * ${timeLeft} / (${assignmentDuration * 60
+                                })))`,
+                            }}
+                          />
+                        </svg>
                       </div>
                     </Col>
-                    {timeLeft > 0 && (
-                      <Col md={10} className="progress-ring">
-                        <div className="progress-ring">
-                          <svg
-                            className="progress-circle"
-                            width="60"
-                            height="60"
-                          >
-                            <circle
-                              className="progress-circle"
-                              stroke="#4CAF50"
-                              strokeWidth="8"
-                              fill="transparent"
-                              r="26"
-                              cx="30"
-                              cy="30"
-                              style={{
-                                strokeDasharray: 2 * Math.PI * 26,
-                                strokeDashoffset: `calc(${
-                                  2 * Math.PI * 26
-                                } - (${2 * Math.PI * 26} * ${timeLeft} / (${
-                                  assignmentDuration * 60
-                                })))`,
-                              }}
-                            />
-                          </svg>
-                        </div>
-                      </Col>
-                    )}
-                  </Row>
-                )}
-              </div>
-            </Modal.Body>
+                  )}
+                </Row>
+              )}
+            </div>
+          </Modal.Body>
 
-            <Modal
-              show={showTimeWarning}
-              onHide={() => setShowTimeWarning(false)}
-              centered
-            >
-              <Modal.Header closeButton>
-                <Modal.Title>Time Warning</Modal.Title>
-              </Modal.Header>
-              <Modal.Body>Hurry up! Only 14 seconds remaining.</Modal.Body>
-              <Modal.Footer>
-                {/* <Button variant="secondary" onClick={() => setShowTimeWarning(false)}>OK</Button> */}
-              </Modal.Footer>
-            </Modal>
-            <div className="card-container">
-              {assignlist?.map((question, index) => (
-                <div
-                  key={index}
-                  className="question-card"
-                  onClick={() => handleQuestionCardClick(index)}
-                >
-                  <div className="question-text">
-                    Q.{index + 1} {question?.question}
+          <Modal
+            show={showTimeWarning}
+            onHide={() => setShowTimeWarning(false)}
+            centered
+          >
+            <Modal.Header closeButton>
+              <Modal.Title>Time Warning</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>Hurry up! Only 14 seconds remaining.</Modal.Body>
+            <Modal.Footer>
+              {/* <Button variant="secondary" onClick={() => setShowTimeWarning(false)}>OK</Button> */}
+            </Modal.Footer>
+          </Modal>
+          <div className="card-container">
+            {assignlist?.map((question, index) => (
+              <div
+                key={index}
+                className="question-card"
+                onClick={() => handleQuestionCardClick(index)}
+              >
+                <div className="question-text">
+                  Q.{index + 1} {question?.question}
+                </div>
+                <div className="answer-section">
+                  <div className="type-info">
+                    <strong>Type:</strong> {question.type}
                   </div>
-                  <div className="answer-section">
-                    <div className="type-info">
-                      <strong>Type:</strong> {question.type}
+                  {timers[index] && (
+                    <div className="elapsed-time">
+                      <strong>Elapsed Time:</strong>{" "}
+                      {formatTime(timers[index].elapsedTime / 1000)}
                     </div>
-                    {timers[index] && (
-                      <div className="elapsed-time">
-                        <strong>Elapsed Time:</strong>{" "}
-                        {formatTime(timers[index].elapsedTime / 1000)}
-                      </div>
-                    )}
-                    {question.type === "multiple_choice(radio)" && (
-                      <div className="options-container">
-                        <p>
-                          <strong>Options:</strong>
-                        </p>
-                        <ul className="options-list single-select">
-                          {question.all_options.map((option, idx) => (
-                            <li key={idx}>
-                              <label className="option-label">
-                                <input
-                                  disabled={areFieldsDisabled()}
-                                  type="radio"
-                                  name={`question-${index}`}
-                                  value={option}
-                                  checked={
-                                    userAnswers[
-                                      `question_number_${index + 1}`
-                                    ] === option ||
-                                    question.selected_answer === option
-                                  }
-                                  onChange={(e) => {
-                                    handleUserAnswerChange(
-                                      e.target.value,
-                                      `question_number_${index + 1}`
-                                    );
-                                    const newSelectedAnswer = e.target.value;
-                                    setAssignList((prevState) => {
-                                      const updatedList = [...prevState];
-                                      updatedList[index].selected_answer =
-                                        newSelectedAnswer;
-                                      return updatedList;
-                                    });
-                                  }}
-                                />
-                                <span className="option-text">{option}</span>
-                                {userAnswers[`question_number_${index + 1}`] ===
-                                  option && (
+                  )}
+                  {question.type === "multiple_choice(radio)" && (
+                    <div className="options-container">
+                      <p>
+                        <strong>Options:</strong>
+                      </p>
+                      <ul className="options-list single-select">
+                        {question.all_options.map((option, idx) => (
+                          <li key={idx}>
+                            <label className="option-label">
+                              <input
+                                disabled={areFieldsDisabled()}
+                                type="radio"
+                                name={`question-${index}`}
+                                value={option}
+                                checked={
+                                  userAnswers[
+                                  `question_number_${index + 1}`
+                                  ] === option ||
+                                  question.selected_answer === option
+                                }
+                                onChange={(e) => {
+                                  handleUserAnswerChange(
+                                    e.target.value,
+                                    `question_number_${index + 1}`
+                                  );
+                                  const newSelectedAnswer = e.target.value;
+                                  setAssignList((prevState) => {
+                                    const updatedList = [...prevState];
+                                    updatedList[index].selected_answer =
+                                      newSelectedAnswer;
+                                    return updatedList;
+                                  });
+                                }}
+                              />
+                              <span className="option-text">{option}</span>
+                              {userAnswers[`question_number_${index + 1}`] ===
+                                option && (
                                   <span className="selected-indicator"></span>
                                 )}
-                              </label>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                            </label>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
-                    {question.type === "multiple_choice(checkbox)" && (
-                      <div className="options-container">
-                        <p>
-                          <strong>Options:</strong>
-                        </p>
-                        <ul className="options-list multi-select">
-                          {question.all_options.map((option, idx) => (
-                            <li key={idx}>
-                              <label className="option-label">
-                                <input
-                                  disabled={areFieldsDisabled()}
-                                  type="checkbox"
-                                  name={`question-${index}`}
-                                  value={option}
-                                  checked={
-                                    userAnswers[
+                  {question.type === "multiple_choice(checkbox)" && (
+                    <div className="options-container">
+                      <p>
+                        <strong>Options:</strong>
+                      </p>
+                      <ul className="options-list multi-select">
+                        {question.all_options.map((option, idx) => (
+                          <li key={idx}>
+                            <label className="option-label">
+                              <input
+                                disabled={areFieldsDisabled()}
+                                type="checkbox"
+                                name={`question-${index}`}
+                                value={option}
+                                checked={
+                                  userAnswers[
+                                    `question_number_${index + 1}`
+                                  ]?.includes(option) ||
+                                  (question.selected_answer &&
+                                    question.selected_answer.includes(option))
+                                }
+                                onChange={(e) => {
+                                  const isChecked = e.target.checked;
+                                  const option = e.target.value;
+                                  let updatedOptions;
+
+                                  if (isChecked) {
+                                    updatedOptions = [
+                                      ...(userAnswers[
+                                        `question_number_${index + 1}`
+                                      ] || []),
+                                      option,
+                                    ];
+                                  } else {
+                                    updatedOptions = (
+                                      userAnswers[
                                       `question_number_${index + 1}`
-                                    ]?.includes(option) ||
-                                    (question.selected_answer &&
-                                      question.selected_answer.includes(option))
-                                  }
-                                  onChange={(e) => {
-                                    const isChecked = e.target.checked;
-                                    const option = e.target.value;
-                                    let updatedOptions;
-
-                                    if (isChecked) {
-                                      updatedOptions = [
-                                        ...(userAnswers[
-                                          `question_number_${index + 1}`
-                                        ] || []),
-                                        option,
-                                      ];
-                                    } else {
-                                      updatedOptions = (
-                                        userAnswers[
-                                          `question_number_${index + 1}`
-                                        ] || []
-                                      ).filter(
-                                        (selectedOption) =>
-                                          selectedOption !== option
-                                      );
-                                    }
-
-                                    // console.log("Updated options:", updatedOptions);
-
-                                    handleUserAnswerChange(
-                                      updatedOptions,
-                                      `question_number_${index + 1}`
+                                      ] || []
+                                    ).filter(
+                                      (selectedOption) =>
+                                        selectedOption !== option
                                     );
-                                  }}
-                                />
-                                <span className="option-text">{option}</span>
-                                {question.selected_answer &&
-                                  question.selected_answer.includes(option) && (
-                                    <span className="selected-indicator"></span>
-                                  )}
-                              </label>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                                  }
 
-                    {(question.type === "fill_in_the_blanks" ||
-                      question.type === "subjective") && (
+                                  // console.log("Updated options:", updatedOptions);
+
+                                  handleUserAnswerChange(
+                                    updatedOptions,
+                                    `question_number_${index + 1}`
+                                  );
+                                }}
+                              />
+                              <span className="option-text">{option}</span>
+                              {question.selected_answer &&
+                                question.selected_answer.includes(option) && (
+                                  <span className="selected-indicator"></span>
+                                )}
+                            </label>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {(question.type === "fill_in_the_blanks" ||
+                    question.type === "subjective") && (
                       <div className="answer-container">
                         <p>
                           <strong>Answer:</strong>
@@ -566,38 +535,28 @@ const AssignmentSheet = (props) => {
                         />
                       </div>
                     )}
-                  </div>
                 </div>
-              ))}
-            </div>
-          </Modal.Body>
-          <Modal.Footer>
-            {!props.assignmentStatus && (
-              <Button
-                variant="outline-primary"
-                onClick={() => saveOrSubmitAssignment(true)}
-              >
-                Submit Assignment
-              </Button>
-            )}
-          </Modal.Footer>
-        </Modal>
-      )}
-      <Modal
-        show={showInstructionsModal}
-        onHide={handleCloseInstructions}
-        centered
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Test Instructions</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>{instructions}</Modal.Body>
+              </div>
+            ))}
+          </div>
+        </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseInstructions}>
-            Close
-          </Button>
+          {!props.assignmentStatus && (
+            <Button
+              variant="outline-primary"
+              onClick={() => saveOrSubmitAssignment(true)}
+            >
+              Submit Assignment
+            </Button>
+          )}
         </Modal.Footer>
       </Modal>
+      {showAlert &&
+        showAlertMessage({
+          open: true,
+          alertFor: showAlert,
+          message: showStatusMessage,
+        })}
     </>
   );
 };

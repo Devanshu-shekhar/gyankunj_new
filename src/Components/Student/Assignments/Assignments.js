@@ -1,239 +1,203 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
-  Row,
-  Col,
-  Table,
+  Box,
   Button,
-  Form,
-  Pagination,
-} from "react-bootstrap";
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+} from "@mui/material";
+import dayjs from "dayjs";
 import { studentAssignmentList } from "../../../ApiClient";
 import AssignmentSheet from "./StartAssignment";
-import dayjs from "dayjs";
+import CommonMatTable from "../../../SharedComponents/CommonMatTable";
 import BackButton from "../../../SharedComponents/BackButton";
 
-const StudentAssigments = () => {
-  const [showAssignmentSheet, setShowAssignmentSheet] = useState(false);
-  const userDetails = JSON.parse(localStorage.getItem("UserData"));
-  const [assignmentFullList, setAssignmentFullList] = useState([]);
-  const [editIndex, setEditIndex] = useState(null);
+const StudentAssignments = () => {
+  const [assignmentData, setAssignmentData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [assignmentsPerPage] = useState(10);
   const [filter, setFilter] = useState("");
-  useEffect(() => {
-    fetchStudentAssignments();
+  const [showAssignmentSheet, setShowAssignmentSheet] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState(null);
+  const [showInstructionsModal, setShowInstructionsModal] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const studentId = useMemo(() => {
+    const userDetails = JSON.parse(localStorage.getItem("UserData"));
+    return userDetails?.user_id;
   }, []);
 
-  const fetchStudentAssignments = () => {
-    const student_id = userDetails.user_id;
-    studentAssignmentList(student_id)
-      .then((res) => {
-        const sortedAssignments = res.data.student_assignments.sort(
-          (a, b) => new Date(b.assigned_on) - new Date(a.assigned_on)
-        );
-        setAssignmentFullList({ student_assignments: sortedAssignments });
-      })
-      .catch((err) => console.log("Assignment Tab err - ", err));
+  useEffect(() => {
+    if (studentId) {
+      studentAssignmentList(studentId)
+        .then((res) => {
+          const sorted = res.data.student_assignments.sort(
+            (a, b) => new Date(b.assigned_on) - new Date(a.assigned_on)
+          );
+          setAssignmentData(sorted);
+        })
+        .catch((err) => console.error("Assignment Fetch Error:", err));
+    }
+  }, [studentId, isRefreshing]);
+
+  const filteredData = useMemo(() => {
+    return assignmentData
+      .filter((a) =>
+        a.assignment_name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .filter((a) => (filter ? a.assignment_status === filter : true));
+  }, [assignmentData, searchTerm, filter]);
+
+  const startAssignment = (row) => {
+    setSelectedAssignment(row);
+    if (row.assignment_type_name === "Test") {
+      setShowInstructionsModal(true);
+    } else {
+      setShowAssignmentSheet(true);
+    }
   };
 
-  const startAssignment = (id) => {
-    setEditIndex(id);
+  const handleCloseInstructions = () => {
+    setShowInstructionsModal(false);
     setShowAssignmentSheet(true);
   };
 
-  const closeAssignment = () => {
+  const closeAssignment = (isSubmited) => {
+    setShowInstructionsModal(false);
     setShowAssignmentSheet(false);
+    setSelectedAssignment(null);
+    if(isSubmited){
+      setIsRefreshing(!isRefreshing);
+    }
   };
 
-  const indexOfLastAssignment = currentPage * assignmentsPerPage;
-  const indexOfFirstAssignment = indexOfLastAssignment - assignmentsPerPage;
+  const columns = useMemo(
+    () => [
+      { accessorKey: "subject_name", header: "Subject" },
+      { accessorKey: "assignment_name", header: "Assignment Name" },
+      { accessorKey: "assignment_type_name", header: "Type" },
+      { accessorKey: "assignment_status", header: "Status" },
+      {
+        accessorKey: "assigned_on",
+        header: "Assigned On",
+        accessorFn: (row) => dayjs(row.assigned_on).format("DD-MM-YYYY"),
+      },
+      {
+        accessorKey: "actions",
+        header: "Actions",
+        accessorFn: (row) => {
+          let label = "";
+          if (row.assignment_status === "New") label = "Start";
+          else if (
+            ["In Progress", "Inprogress"].includes(row.assignment_status)
+          )
+            label = "Continue";
+          else if (row.assignment_status === "Submitted")
+            label = "Check Assignment";
 
-  const filteredAssignments =
-    assignmentFullList?.student_assignments?.filter((assignment) => {
-      if (!filter) return true;
-      return assignment.assignment_status === filter;
-    }) || [];
-
-  const currentAssignments = filteredAssignments.slice(
-    indexOfFirstAssignment,
-    indexOfLastAssignment
+          return label ? (
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => startAssignment(row)}
+            >
+              {label}
+            </Button>
+          ) : null;
+        },
+      },
+    ],
+    []
   );
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const RenderToolbar = () => (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: 2,
+        flexWrap: "wrap",
+        marginBottom: 2,
+      }}
+    >
+      <BackButton />
+      <TextField
+        label="Search Assignment"
+        variant="outlined"
+        size="small"
+        className="w-25"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        sx={{ width: "30ch" }}
+      />
+      <FormControl size="small" sx={{ minWidth: 180 }}>
+        <InputLabel>Status Filter</InputLabel>
+        <Select
+          value={filter}
+          label="Status Filter"
+          onChange={(e) => setFilter(e.target.value)}
+        >
+          <MenuItem value="">All</MenuItem>
+          <MenuItem value="New">New</MenuItem>
+          <MenuItem value="In Progress">In Progress</MenuItem>
+          <MenuItem value="Submitted">Submitted</MenuItem>
+        </Select>
+      </FormControl>
+    </Box>
+  );
 
   return (
     <>
-      <BackButton />
-      <Row style={{ margin: "20px 0px" }}>
-      <div className="assignmentTabData">
-        <Row
-          style={{
-            height: "68px",
-            boxShadow: "0px 3px 6px #B4B3B329",
-            position: "relative",
-            left: "12px",
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <Col md={4}>
-            <h4>All Assignments</h4>
-          </Col>
-          <Col md={4}>
-            <Form.Control
-              type="text"
-              placeholder="Search by Assignment Name"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </Col>
-          <Col md={4}>
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <span style={{ marginRight: "10px", fontWeight: "bold" }}>
-                Filter by:
-              </span>
-              <Form.Select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                style={{ maxWidth: "200px" }}
-              >
-                <option value="">All</option>
-                <option value="New">New</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Submitted">Submitted</option>
-              </Form.Select>
-            </div>
-          </Col>
-        </Row>
-        <Row
-          md={12}
-          style={{ justifyContent: "space-evenly", paddingTop: "20px" }}
-        >
-          <Col md={12} className="AssignmentDetails">
-            <Table striped bordered hover>
-              <thead>
-                <tr
-                  style={{
-                    background: "#7A9ABF",
-                    borderRadius: "4px",
-                    opacity: "1",
-                    color: "white",
-                  }}
-                >
-                  <th>Sl. No.</th>
-                  <th>Subject</th>
-                  <th>Assignment Name</th>
-                  <th>Type</th>
-                  <th>Status</th>
-                  <th>Assigned On</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentAssignments
-                  .filter((assignment) =>
-                    assignment.assignment_name
-                      .toLowerCase()
-                      .includes(searchTerm.toLowerCase())
-                  )
-                  .map((assignment, indx) => (
-                    <tr
-                      key={assignment.assignment_id}
-                      style={{
-                        background: indx % 2 === 0 ? "#f2f2f2" : "white",
-                      }}
-                    >
-                      <td>{indx + 1}</td>
-                      <td>{assignment.subject_name}</td>
-                      <td>{assignment.assignment_name}</td>
-                      <td>{assignment.assignment_type_name}</td>
-                      <td>{assignment.assignment_status}</td>
-                      <td>
-                        {dayjs(assignment?.assigned_on).format("DD-MM-YYYY")}
-                      </td>
-                      <td>
-                        {assignment.assignment_status === "New" && (
-                          <Button
-                            variant="primary"
-                            onClick={() =>
-                              startAssignment(assignment.assignment_id)
-                            }
-                          >
-                            Start
-                          </Button>
-                        )}
-                        {["Inprogress", "In Progress"].includes(
-                          assignment.assignment_status
-                        ) && (
-                          <Button
-                            variant="primary"
-                            onClick={() =>
-                              startAssignment(assignment.assignment_id)
-                            }
-                          >
-                            Continue
-                          </Button>
-                        )}
-                        {assignment.assignment_status === "Submitted" && (
-                          <Button
-                            variant="primary"
-                            onClick={() =>
-                              startAssignment(assignment.assignment_id)
-                            }
-                          >
-                            Check Assignment
-                          </Button>
-                        )}
-                        {showAssignmentSheet &&
-                          editIndex === assignment.assignment_id && (
-                            <AssignmentSheet
-                              show={showAssignmentSheet}
-                              onHide={closeAssignment}
-                              assignmentId={assignment.assignment_id}
-                              assignmentType={assignment.assignment_type_name}
-                              assignmentName={assignment.assignment_name}
-                              setAssignmentFullList={setAssignmentFullList}
-                              assignmentStatus={
-                                assignment.assignment_status === "Submitted"
-                              }
-                            />
-                          )}
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </Table>
-          </Col>
-        </Row>
-        <Row md={12}>
-          <Col className="text-center">
-            <Pagination>
-              {Array.from(
-                {
-                  length: Math.ceil(
-                    filteredAssignments?.length / assignmentsPerPage
-                  ),
-                },
-                (_, i) => (
-                  <Pagination.Item
-                    key={i + 1}
-                    active={i + 1 === currentPage}
-                    onClick={() => paginate(i + 1)}
-                  >
-                    {i + 1}
-                  </Pagination.Item>
-                )
-              )}
-            </Pagination>
-          </Col>
-        </Row>
-      </div>
-    </Row>
+      <RenderToolbar />
+      <CommonMatTable
+        columns={columns}
+        data={filteredData}
+        isLoading={false}
+        renderTopToolbar={() => (
+          <h1 style={{ fontSize: 18, marginTop: 10 }}>Assignments</h1>
+        )}
+      />
+      {showAssignmentSheet && selectedAssignment && (
+        <AssignmentSheet
+          show={showAssignmentSheet}
+          onHide={closeAssignment}
+          assignmentId={selectedAssignment.assignment_id}
+          assignmentType={selectedAssignment.assignment_type_name}
+          assignmentName={selectedAssignment.assignment_name}
+          setAssignmentFullList={setAssignmentData}
+          assignmentStatus={
+            selectedAssignment.assignment_status === "Submitted"
+          }
+        />
+      )}
+      <Dialog
+        open={showInstructionsModal}
+        onClose={closeAssignment}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Test Instructions"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">You cannot switch tabs, and we are monitoring your activity.</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="" onClick={closeAssignment}>Disagree</Button>
+          <Button onClick={handleCloseInstructions} autoFocus>
+            Agree
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
-    
   );
 };
 
-export default StudentAssigments;
+export default StudentAssignments;
