@@ -182,7 +182,7 @@ const CustomMasterRoutine = () => {
           <CircularProgress />
         </div>
       ) : (
-        <table>
+        <table className="table table-bordered">
           <thead>
             <tr>
               <th className="fs-6 bg-secondary text-white text-center">Grade</th>
@@ -274,7 +274,7 @@ const CustomMasterRoutine = () => {
                       );
                     } else {
                       return (
-                        <td className="p-0" key={item.period_id}>
+                        <td key={item.period_id}>
                           <div
                             className={`text-center cell ${
                               item.period_id !== "Break" ? "empty-cell" : ""

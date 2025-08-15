@@ -117,7 +117,7 @@ const PaRoutine = () => {
           <CircularProgress />
         </div>
       ) : (
-        <table>
+        <table className="table table-bordered">
           <thead>
             <tr>
               <th className="fs-6 bg-secondary text-white">Day</th>
@@ -147,7 +147,7 @@ const PaRoutine = () => {
                     );
                     if (routine) {
                       return (
-                        <td className="p-0" key={item.period}>
+                        <td key={item.period}>
                           <div className="p-1 rounded text-center text-white cell selected-cell">
                             <p className="mb-0">
                               <small>
@@ -165,7 +165,7 @@ const PaRoutine = () => {
                       );
                     } else {
                       return (
-                        <td className="p-0" key={item.period}>
+                        <td key={item.period}>
                           <div
                             className={`text-center cell ${
                               item.period !== "Break" ? "empty-cell" : ""

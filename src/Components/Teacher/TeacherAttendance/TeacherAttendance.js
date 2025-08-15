@@ -234,7 +234,7 @@ const TeacherAttendance = () => {
               <CircularProgress />
             </div>
           ) : (
-            <table border="1">
+            <table className="table table-bordered">
               <thead className="bg-info-subtle">
                 <tr>
                   <th className="text-center" style={{ minWidth: 80 }}>Roll No</th>
