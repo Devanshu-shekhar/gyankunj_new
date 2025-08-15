@@ -1,18 +1,24 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
-import { Box, Button, CircularProgress, Grid, IconButton, InputAdornment, TextField } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
-  deleteUserInfo,
-  fetchFeesStructuresList,
-  fetchMetadataInfo,
-  getUsersList,
+  Box,
+  Button,
+  Grid,
+  CircularProgress,
+  TextField,
+  InputAdornment,
+  IconButton,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { 
+  fetchFeesStructuresList, 
+  fetchMetadataInfo, 
+  getUsersList, 
+  deleteUserInfo 
 } from "../../../ApiClient";
-import AlertDialogSlide from "../HRMS/AlertDialogSlide";
 import { showAlertMessage } from "../../AlertMessage";
 import UserCard from "./UserCard";
+import AlertDialogSlide from "../HRMS/AlertDialogSlide";
 import ClearIcon from "@mui/icons-material/Clear";
-import { use } from "react";
-import { set } from "react-hook-form";
 
 const AdmissionView = () => {
   const searchTimeoutRef = useRef(null);

@@ -50,8 +50,8 @@ const CreateStudentRouteMapping = ({
     handleSubmit,
     reset,
     getValues,
-    setValue,
     formState: { errors },
+    watch,
   } = useForm({
     defaultValues: {
       route_id: "",

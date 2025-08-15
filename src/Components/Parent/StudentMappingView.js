@@ -10,7 +10,7 @@ const StudentMappingView = () => {
   const [isAddRoutesModalVisible, setIsAddRoutesModalVisible] = useState(false);
   const [refreshTable, setRefreshTable] = useState(false);
   const [routesList, setRoutesList] = useState();
-  const [selectedDataToEdit, setSelectedDataToEdit] = useState();
+  const [selectedDataToEdit, setSelectedDataToEdit] = useState(null);
 
   useEffect(() => {
     setIsLoading(true);
@@ -59,7 +59,7 @@ const StudentMappingView = () => {
     const subRows = row.original.route_student_info;
 
     return (
-      <table style={{ width: "100%", border: "1px solid #ddd" }}>
+      <table className="table table-bordered w-100">
         <thead>
           <tr>
             <th style={{ padding: "8px", borderBottom: "1px solid #ddd" }}>

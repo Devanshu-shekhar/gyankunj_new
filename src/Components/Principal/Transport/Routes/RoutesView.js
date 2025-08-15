@@ -46,7 +46,7 @@ const RoutesView = () => {
     const subRows = row.original.stop_points_data;
 
     return (
-      <table style={{ width: "100%", border: "1px solid #ddd" }}>
+      <table className="table table-bordered w-100">
         <thead>
           <tr>
             <th style={{ padding: "8px", borderBottom: "1px solid #ddd" }}>

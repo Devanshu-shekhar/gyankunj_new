@@ -22,7 +22,7 @@ const DateRangePickerComponent = ({ range, onChange }) => {
     if (startDate && endDate) {
       onChange({ startDate, endDate });
     }
-  }, [startDate, endDate]);
+  }, [startDate, endDate, onChange]);
 
   return (
     <div className="d-flex gap-2 justify-content-around">

@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useTheme } from "@mui/material";
+import { tokens } from "../theme";
+import { routesConfig } from "./RoutesConfig";
+import { Box, Typography } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
 import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
-import { Box, Typography, useTheme } from "@mui/material";
 import { Link, useLocation } from "react-router-dom";
 import "react-pro-sidebar/dist/css/styles.css";
-import { tokens } from "../theme";
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined";
-import CloseIcon from "@mui/icons-material/Close";
-import { routesConfig } from "./RoutesConfig";
 import SidebarBackground from "../Images/SidebarBackground_1.png";
 
 const Item = ({ title, to, icon, onMenuItemClick }) => {
@@ -30,17 +31,11 @@ const Item = ({ title, to, icon, onMenuItemClick }) => {
   );
 };
 
-const SidebarContainer = ({
-  userData,
-  setCollapsed,
-  openFor,
-  onMenuItemClick,
-}) => {
+export default function SidebarContainer({ userData, setCollapsed, openFor, onMenuItemClick }) {
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const userRole = userData?.role;
-  const classTeacherDetails = userData?.class_teacher_details;
   const userRoutes = routesConfig[userRole] || [];
 
   useEffect(() => {
@@ -84,17 +79,6 @@ const SidebarContainer = ({
 
           <Box>
             {userRoutes.map((item) => (
-              // Check if the item route is "teacherDashboard/logBook" and classTeacherDetails exist
-              // (item.code !== "logBook" ||
-              // (item.code === "logBook" && classTeacherDetails)) && (
-              //   <Item
-              //     key={item.code}
-              //     title={item.title}
-              //     to={item.route}
-              //     icon={item.icon}
-              //     onMenuItemClick={onMenuItemClick}
-              //   />
-              // )
               <Item
                 key={item.code}
                 title={item.title}
@@ -109,5 +93,3 @@ const SidebarContainer = ({
     </Box>
   );
 };
-
-export default SidebarContainer;

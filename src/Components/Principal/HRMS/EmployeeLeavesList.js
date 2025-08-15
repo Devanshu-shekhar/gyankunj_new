@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from "react";
-import Box from "@mui/material/Box";
 import {
   Button,
   Dialog,
@@ -19,7 +18,6 @@ import BackButton from "../../../SharedComponents/BackButton";
 const EmployeeLeavesList = (props) => {
   const userInfo = JSON.parse(localStorage.getItem("UserData"));
   const [appliedLeavesList, setAppliedLeavesList] = useState([]);
-  const [selectedLeave, setSelectedLeave] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshTable, setRefreshTable] = useState(false);
   const [showAlert, setShowAlert] = useState("");

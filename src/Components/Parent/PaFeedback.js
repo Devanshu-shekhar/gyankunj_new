@@ -12,7 +12,6 @@ import {
 import AddIcon from "@mui/icons-material/Add";
 import {
   getLeaveApplicationsList,
-  getParentLeaveApplicationsList,
   withdrawLeaveApplication,
 } from "../../ApiClient";
 import CommonMatTable from "../../SharedComponents/CommonMatTable";
@@ -180,7 +179,7 @@ const PaFeedback = (props) => {
         accessorFn: (row) => accessorFn(row),
       },
     ],
-    []
+    [accessorFn]
   );
 
   return (

@@ -17,6 +17,27 @@ import { useNavigate } from "react-router-dom";
 import AttendanceReview from "./AttendanceReview";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+} from 'chart.js';
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+
 // Reusable card component for stats
 const StatCard = ({ title, value, icon, bgColor, onClick }) => (
   <Grid item xs={12} sm={6} md={3}>

@@ -10,8 +10,6 @@ import Gyankoonj_logo from "../Images/Gyankoonj_logo.png";
 import { Button, Fab } from "@mui/material";
 import UserBasicDetailsForm from "./UserBasicDetailsForm";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import JDoodleExecutor from "./JDoodleCompiler";
-import JDoodleCompiler from "./JDoodleCompiler";
 
 const LandingDashboard = ({ mainContainer }) => {
   const featureSectionRef = useRef(null);

@@ -16,7 +16,6 @@ import {
 import { useForm, Controller } from "react-hook-form";
 import { makeAdmissionFeePayment } from "../../../../ApiClient";
 import { showAlertMessage } from "../../../AlertMessage";
-import e from "cors";
 
 const InstallmentPaymentDialog = ({ open, onClose, feesData, paymentModes }) => {
     const [alert, setAlert] = useState({ type: "", message: "" });
@@ -31,7 +30,7 @@ const InstallmentPaymentDialog = ({ open, onClose, feesData, paymentModes }) => 
     });
 
     // Watch selected installments
-    const selectedInstallments = watch("installments") || [];
+    const selectedInstallments = useMemo(() => watch("installments") || [], [watch]);
 
     const transactionAmount = useMemo(() => {
         if (!feesData) return 0; // Handle undefined feesData safely

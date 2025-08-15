@@ -14,7 +14,6 @@ import "codemirror/mode/perl/perl";
 import "codemirror/mode/go/go";
 import "codemirror/mode/r/r";
 //import "codemirror/mode/bash/bash";
-import "bootstrap/dist/css/bootstrap.min.css";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import BackButton from "../SharedComponents/BackButton";
 
