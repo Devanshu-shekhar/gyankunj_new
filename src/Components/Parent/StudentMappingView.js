@@ -10,7 +10,7 @@ const StudentMappingView = () => {
   const [isAddRoutesModalVisible, setIsAddRoutesModalVisible] = useState(false);
   const [refreshTable, setRefreshTable] = useState(false);
   const [routesList, setRoutesList] = useState();
-  const [selectedDataToEdit, setSelectedDataToEdit] = useState();
+  const [selectedDataToEdit, setSelectedDataToEdit] = useState(null);
 
   useEffect(() => {
     setIsLoading(true);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { styled } from "@mui/material/styles";
 import {
   Dialog,
@@ -12,18 +12,16 @@ import {
   Button,
   Checkbox,
   FormControlLabel,
-  MenuItem,
-  InputAdornment,
   Autocomplete,
+  MenuItem,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import { Controller, useForm } from "react-hook-form";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import dayjs from "dayjs";
+import { useForm, Controller } from "react-hook-form";
 import { updateUserInfo } from "../../../ApiClient";
 import { showAlertMessage } from "../../AlertMessage";
+import dayjs from "dayjs";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import CloseIcon from "@mui/icons-material/Close";
 import { countries } from "countries-list";
 
 const BootstrapDialog = styled(Dialog)(({ theme }) => ({
@@ -44,9 +42,7 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
 
 const CreateEmployee = ({ isOpen, handleClose, selectedData = {} }) => {
   const { handleSubmit, reset, control, watch } = useForm();
-  const [isEditMode, setIsEditMode] = useState(
-    Object.keys(selectedData).length > 0
-  );
+  const isEditMode = Object.keys(selectedData).length > 0;
   const countryList = Object.values(countries).map((country) => country.name);
   const [showAlert, setShowAlert] = useState("");
   const designationsList = localStorage.getItem("UserRoles") ? JSON.parse(localStorage.getItem("UserRoles")) : [];

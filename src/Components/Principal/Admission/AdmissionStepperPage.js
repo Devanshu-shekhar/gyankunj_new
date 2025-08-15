@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  Container,
+  Box,
   Stepper,
   Step,
   StepLabel,
-  Typography,
   Button,
-  Box,
+  Typography,
+  Container,
   Paper,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
@@ -23,7 +23,6 @@ import StudentInfoForm from "./StudentInfoForm";
 import FeeDetailsForm from "./FeeDetailsForm";
 import BackButton from "../../../SharedComponents/BackButton";
 import CollectDepositForm from "./CollectDepositForm";
-import { use } from "react";
 
 const steps = ["Personal Info", "Fees Details", "Collect Deposit"];
 
@@ -116,7 +115,6 @@ const AdmissionStepperPage = () => {
   const {
     control: controlSecond,
     handleSubmit: handleSubmitSecond,
-    reset: resetSecond,
     setValue: setValueSecond,
     watch: watchSecond,
   } = useForm({
@@ -136,9 +134,8 @@ const AdmissionStepperPage = () => {
   const {
     control: controlThird,
     handleSubmit: handleSubmitThird,
-    reset: resetThird,
-    watch: watchThird,
     setValue: setValueThird,
+    watch: watchThird,
   } = useForm({
     defaultValues: {
       user_id: "",

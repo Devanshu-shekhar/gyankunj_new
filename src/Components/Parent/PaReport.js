@@ -141,7 +141,7 @@ const PaReport = () => {
     if (userInfo.student_info && userInfo.student_info.length > 0) {
       setStudentFilter(userInfo.student_info[0].student_id);
     }
-  }, []);
+  }, [userInfo.student_info]);
 
   useEffect(() => {
     if (studentFilter) {

@@ -1,64 +1,64 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedWrapper } from "../ProtectedRoute";
-import LandingDashboard from "./LandingDashboard";
-import PageNotFound from "./PageNotFound";
-import PDashboard from "./Principal/PDashboard";
-import ReportSection from "./Principal/Reports";
-import Announcements from "./Principal/Announcement/Announcement";
-import MySubjects from "./Teacher/MySubject/MySubjects";
-import TeacherReport from "./Teacher/TeacherReport/TeacherReport";
-import TeacherAssignment from "./Teacher/Assignment/TeacherAssignment";
-import NoticeForTeacher from "./Teacher/NoticeForTeacher/NoticeForTeacher";
-import StudentAssigments from "./Student/Assignments/Assignments";
-import StudentReportSection from "./Student/Report/Reports";
-import NoticeForStudents from "./Student/NoticeForStudents/NoticeForStudents";
-import CreateAssignment from "./Teacher/Assignment/CreateAssignment";
-import Addquestions from "./Teacher/Assignment/Addquestions";
-import SubmissionsPage from "./Teacher/Assignment/SubmissionsComponent";
-import Viewreport from "./Teacher/Assignment/Viewreport";
-import EvaluteAssignmentReport from "./Teacher/Assignment/EvaluteAssignmentReport";
-import TDashboard from "./Teacher/Dashboard/TDashboard";
-import PLessonPlan from "./Principal/PLessonPlan";
-import LogBookCLassTeacher from "./Teacher/Dashboard/LogBook/LogBookCLassTeacher";
-import TLessonPlan from "./Teacher/LessonPlan/TLessonPlan";
-import PResources from "./Principal/Resources/PResources";
-import CustomMasterRoutine from "./Principal/MasterRoutine/CustomMasterRoutine";
-import TResources from "./Teacher/Resources/TResources";
-import SResources from "./Student/Resources/SResources";
-import SDashboard from "./Student/SDashboard";
-import TeacherAttendance from "./Teacher/TeacherAttendance/TeacherAttendance";
-import AttendancesOverview from "./Principal/Attendance/AttendancesOverview";
-import PaAssignments from "./Parent/PaAssignments";
-import PaDashboard from "./Parent/PaDashboard";
-import PaRoutine from "./Parent/PaRoutine";
-import PaTransport from "./Parent/PaTransport";
-import PaFees from "./Parent/PaFees";
-import PaFeedback from "./Parent/PaFeedback";
-import PaAnnouncements from "./Parent/PaAnnouncements";
-import PaNotifications from "./Parent/PaNotifications";
-import PaAssignmentDetails from "./Parent/PaAssignmentDetails";
-import PaReport from "./Parent/PaReport";
-import TNotifications from "./Teacher/TNotifications";
-import SNotifications from "./Student/SNotifications";
-import APNotifications from "./Principal/APNotifications";
-import PSchoolDiary from "./Principal/PSchoolDiary";
-import TransportView from "./Principal/Transport/TransportView";
-import HrmsDashboard from "./Principal/HRMS/HrmsDashboard";
-import ProfilePage from "./ProfilePage";
-import EmployeesList from "./Principal/HRMS/EmployeesList";
-import EmployeeLeavesList from "./Principal/HRMS/EmployeeLeavesList";
-import FinanceView from "./Principal/Finance/FinanceView";
-import AdmissionView from "./Principal/Admission/AdmissionView";
-import JDoodleCompiler from "./JDoodleCompiler";
-import StudentRoutine from "./Student/StudentRoutine";
-import RoboticsLabView from "./Student/Robotics/RoboticsLabView";
-import LanguageLabView from "./Student/LanguageLab/LanguageLabView";
-import SchoolDiaryView from "./Student/SchoolDiary/SchoolDiaryView";
-import EmployeeAttendanceView from "./Principal/HRMS/EmployeeAttendanceView";
-import UserCalendar from "./UserCalendar";
-import SchoolConfiguration from "./Principal/School/SchoolConfiguration";
-import AdmissionStepperPage from "./Principal/Admission/AdmissionStepperPage";
+const LandingDashboard = lazy(() => import("./LandingDashboard"));
+const PageNotFound = lazy(() => import("./PageNotFound"));
+const PDashboard = lazy(() => import("./Principal/PDashboard"));
+const ReportSection = lazy(() => import("./Principal/Reports"));
+const Announcements = lazy(() => import("./Principal/Announcement/Announcement"));
+const MySubjects = lazy(() => import("./Teacher/MySubject/MySubjects"));
+const TeacherReport = lazy(() => import("./Teacher/TeacherReport/TeacherReport"));
+const TeacherAssignment = lazy(() => import("./Teacher/Assignment/TeacherAssignment"));
+const NoticeForTeacher = lazy(() => import("./Teacher/NoticeForTeacher/NoticeForTeacher"));
+const StudentAssigments = lazy(() => import("./Student/Assignments/Assignments"));
+const StudentReportSection = lazy(() => import("./Student/Report/Reports"));
+const NoticeForStudents = lazy(() => import("./Student/NoticeForStudents/NoticeForStudents"));
+const CreateAssignment = lazy(() => import("./Teacher/Assignment/CreateAssignment"));
+const Addquestions = lazy(() => import("./Teacher/Assignment/Addquestions"));
+const SubmissionsPage = lazy(() => import("./Teacher/Assignment/SubmissionsComponent"));
+const Viewreport = lazy(() => import("./Teacher/Assignment/Viewreport"));
+const EvaluteAssignmentReport = lazy(() => import("./Teacher/Assignment/EvaluteAssignmentReport"));
+const TDashboard = lazy(() => import("./Teacher/Dashboard/TDashboard"));
+const PLessonPlan = lazy(() => import("./Principal/PLessonPlan"));
+const LogBookCLassTeacher = lazy(() => import("./Teacher/Dashboard/LogBook/LogBookCLassTeacher"));
+const TLessonPlan = lazy(() => import("./Teacher/LessonPlan/TLessonPlan"));
+const PResources = lazy(() => import("./Principal/Resources/PResources"));
+const CustomMasterRoutine = lazy(() => import("./Principal/MasterRoutine/CustomMasterRoutine"));
+const TResources = lazy(() => import("./Teacher/Resources/TResources"));
+const SResources = lazy(() => import("./Student/Resources/SResources"));
+const SDashboard = lazy(() => import("./Student/SDashboard"));
+const TeacherAttendance = lazy(() => import("./Teacher/TeacherAttendance/TeacherAttendance"));
+const AttendancesOverview = lazy(() => import("./Principal/Attendance/AttendancesOverview"));
+const PaAssignments = lazy(() => import("./Parent/PaAssignments"));
+const PaDashboard = lazy(() => import("./Parent/PaDashboard"));
+const PaRoutine = lazy(() => import("./Parent/PaRoutine"));
+const PaTransport = lazy(() => import("./Parent/PaTransport"));
+const PaFees = lazy(() => import("./Parent/PaFees"));
+const PaFeedback = lazy(() => import("./Parent/PaFeedback"));
+const PaAnnouncements = lazy(() => import("./Parent/PaAnnouncements"));
+const PaNotifications = lazy(() => import("./Parent/PaNotifications"));
+const PaAssignmentDetails = lazy(() => import("./Parent/PaAssignmentDetails"));
+const PaReport = lazy(() => import("./Parent/PaReport"));
+const TNotifications = lazy(() => import("./Teacher/TNotifications"));
+const SNotifications = lazy(() => import("./Student/SNotifications"));
+const APNotifications = lazy(() => import("./Principal/APNotifications"));
+const PSchoolDiary = lazy(() => import("./Principal/PSchoolDiary"));
+const TransportView = lazy(() => import("./Principal/Transport/TransportView"));
+const HrmsDashboard = lazy(() => import("./Principal/HRMS/HrmsDashboard"));
+const ProfilePage = lazy(() => import("./ProfilePage"));
+const EmployeesList = lazy(() => import("./Principal/HRMS/EmployeesList"));
+const EmployeeLeavesList = lazy(() => import("./Principal/HRMS/EmployeeLeavesList"));
+const FinanceView = lazy(() => import("./Principal/Finance/FinanceView"));
+const AdmissionView = lazy(() => import("./Principal/Admission/AdmissionView"));
+const JDoodleCompiler = lazy(() => import("./JDoodleCompiler"));
+const StudentRoutine = lazy(() => import("./Student/StudentRoutine"));
+const RoboticsLabView = lazy(() => import("./Student/Robotics/RoboticsLabView"));
+const LanguageLabView = lazy(() => import("./Student/LanguageLab/LanguageLabView"));
+const SchoolDiaryView = lazy(() => import("./Student/SchoolDiary/SchoolDiaryView"));
+const EmployeeAttendanceView = lazy(() => import("./Principal/HRMS/EmployeeAttendanceView"));
+const UserCalendar = lazy(() => import("./UserCalendar"));
+const SchoolConfiguration = lazy(() => import("./Principal/School/SchoolConfiguration"));
+const AdmissionStepperPage = lazy(() => import("./Principal/Admission/AdmissionStepperPage"));
 
 // Define routes for different user roles
 const roleRoutes = {
@@ -70,7 +70,6 @@ const roleRoutes = {
 };
 
 export default function RoutesContainer({ userData, mainContainerRef }) {
-  const classTeacherDetails = userData?.class_teacher_details;
   // Function to check if the user has the required role for accessing a route
   const hasPermission = (allowedRoles) => {
     return allowedRoles.includes(userData?.role);
@@ -83,6 +82,7 @@ export default function RoutesContainer({ userData, mainContainerRef }) {
     hasPermission(["ADMIN", "PRINCIPAL", "TEACHER", "STUDENT", "PARENT"])
   ) {
     return (
+      <Suspense fallback={<div />}> 
       <Routes>
         <Route path="/" element={<Navigate to={roleRoutes[userData.role]} />} />
         {/* Principal Routes */}
@@ -350,9 +350,14 @@ export default function RoutesContainer({ userData, mainContainerRef }) {
         />
         <Route path="*" element={<Navigate to="/404" />} />
       </Routes>
+      </Suspense>
     );
   }
 
   // If user doesn't have permission, show DashboardSectionContent
-  return <LandingDashboard mainContainer={mainContainerRef} />;
+  return (
+    <Suspense fallback={<div />}>
+      <LandingDashboard mainContainer={mainContainerRef} />
+    </Suspense>
+  );
 }
