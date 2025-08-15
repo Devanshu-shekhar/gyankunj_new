@@ -8,8 +8,11 @@ import {
   DialogTitle,
   Alert,
 } from "@mui/material";
+import {
+  evaluateLeaveApplication,
+  getStaffLeaveApplicationsList,
+} from "../../../ApiClient";
 import CommonMatTable from "../../../SharedComponents/CommonMatTable";
-import { getStaffLeaveApplicationsList } from "../../../ApiClient";
 import BackButton from "../../../SharedComponents/BackButton";
 
 const EmployeeLeavesList = (props) => {
@@ -40,13 +43,28 @@ const EmployeeLeavesList = (props) => {
   }, [refreshTable, userInfo.user_id]);
 
   const takeActionOnLeave = (leaveId, isApproved) => {
-    // Assuming evaluateLeaveApplication is no longer needed or replaced by getEmployeeLeavesList
-    // For now, we'll just refresh the table on success
-    setRefreshTable((prev) => !prev);
-    setShowAlert("success");
-    setTimeout(() => {
-      setShowAlert("");
-    }, 2000);
+    const payload = {
+      leave_id: leaveId,
+      is_approved: isApproved,
+    };
+    evaluateLeaveApplication(payload)
+      .then((res) => {
+        if (res?.data?.status === "success") {
+          setShowAlert("success");
+        } else {
+          setShowAlert("error");
+        }
+        setTimeout(() => {
+          setShowAlert("");
+        }, 2000);
+        setRefreshTable((prev) => !prev);
+      })
+      .catch((err) => {
+        setShowAlert("error");
+        setTimeout(() => {
+          setShowAlert("");
+        }, 3000);
+      });
     closeConfirmationDialog();
   };
 
@@ -77,20 +95,22 @@ const EmployeeLeavesList = (props) => {
           {row.status}
         </div>
         {row.status === "pending" && (
-          <div className="d-flex gap-2">
-            <button
-              className="btn btn-sm btn-outline-danger"
+          <DialogActions>
+            <Button
+              variant="outlined"
+              color="error"
               onClick={() => openConfirmationDialog(row.leave_id, false)}
             >
               Reject
-            </button>
-            <button
-              className="btn btn-sm btn-outline-success"
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
               onClick={() => openConfirmationDialog(row.leave_id, true)}
             >
               Approve
-            </button>
-          </div>
+            </Button>
+          </DialogActions>
         )}
       </div>
     );
