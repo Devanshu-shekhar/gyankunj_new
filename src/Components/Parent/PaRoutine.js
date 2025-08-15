@@ -22,39 +22,11 @@ const PaRoutine = () => {
   const [studentFilter, setStudentFilter] = useState({});
 
   useEffect(() => {
-    const getMasterRoutineMetadata = () => {
-      getMasterRoutineMetadataInfo(userInfo.routine_id)
-        .then((res) => {
-          if (res?.data) {
-            if (res.data.periods && res.data.periods.length > 0) {
-              const updatedPeriodData = res.data.periods.reduce(
-                (acc, period, index) => {
-                  acc.push(period);
-                  if (index === 3) {
-                    acc.push({
-                      period: "Break",
-                    });
-                  }
-                  return acc;
-                },
-                []
-              );
-
-              setPeriodData(updatedPeriodData);
-            }
-            if (res.data.days && res.data.days.length > 0) {
-              setDaysData(res.data.days);
-            }
-          }
-        })
-        .catch((err) => console.error(err));
-    };
-
     if (userInfo.student_info && userInfo.student_info.length > 0) {
       setStudentFilter(userInfo.student_info[0]);
     }
     getMasterRoutineMetadata();
-  }, [userInfo.student_info, userInfo.routine_id]);
+  }, []);
 
   useEffect(() => {
     if (studentFilter.grade_id && studentFilter.section_id) {
@@ -75,6 +47,34 @@ const PaRoutine = () => {
         });
     }
   }, [studentFilter]);
+
+  const getMasterRoutineMetadata = () => {
+    getMasterRoutineMetadataInfo(userInfo.routine_id)
+      .then((res) => {
+        if (res?.data) {
+          if (res.data.periods && res.data.periods.length > 0) {
+            const updatedPeriodData = res.data.periods.reduce(
+              (acc, period, index) => {
+                acc.push(period);
+                if (index === 3) {
+                  acc.push({
+                    period: "Break",
+                  });
+                }
+                return acc;
+              },
+              []
+            );
+
+            setPeriodData(updatedPeriodData);
+          }
+          if (res.data.days && res.data.days.length > 0) {
+            setDaysData(res.data.days);
+          }
+        }
+      })
+      .catch((err) => console.error(err));
+  };
 
   const handleStudentChange = (e) => {
     setStudentFilter(e.target.value);

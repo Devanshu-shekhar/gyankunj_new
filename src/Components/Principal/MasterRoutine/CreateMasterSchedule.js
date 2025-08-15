@@ -89,7 +89,7 @@ const CreateMasterSchedule = ({ isOpen, handleClose, selectedRoutineType }) => {
         })
         .catch((err) => console.error(err));
     }
-  }, [userInfo.routine_id, setValue]);
+  }, []);
 
   const onSubmit = (data) => {
     // Helper function to format time to "HH:mm:ss"

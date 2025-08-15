@@ -44,7 +44,7 @@ const PaNotifications = () => {
         setIsLoading(false);
         console.log(err);
       });
-  }, [userDetails?.role, userDetails?.user_id]);
+  }, []);
 
   const handleChange = (panel) => (event, isExpanded) => {
     setExpanded(isExpanded ? panel : false);

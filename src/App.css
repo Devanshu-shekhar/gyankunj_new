@@ -45,7 +45,7 @@ a {
 }
 
 .dropdown-toggle::after {
-  display: none; /* Hide the pseudo-element */
+  display: none !important; /* Hide the pseudo-element */
 }
 
 /* Style the scrollbar */
