@@ -128,43 +128,74 @@ const InstallmentPaymentDialog = ({ open, onClose, feesData, paymentModes }) => 
                                 />
                             </FormControl>
                         </Grid>
-                        {feesData.is_deposit_paid && feesData?.installments?.length > 0 && (
+                        { feesData.is_deposit_paid && feesData?.installments?.length > 0 && (
                             <Grid item xs={12}>
                                 <FormControl fullWidth margin="dense">
                                     <InputLabel>Select Installment</InputLabel>
                                     <Controller
-                                        name="installments"
-                                        control={control}
-                                        rules={{ required: true }}
-                                        render={({ field }) => (
-                                            <Select
-                                                label="installments"
-                                                {...field}
-                                                multiple
-                                                renderValue={(selected) =>
-                                                    selected.map((number) =>
-                                                        `Installment ${number}`
-                                                    ).join(", ")
+                                    name="installments"
+                                    control={control}
+                                    rules={{ required: true }}
+                                    render={({ field }) => {
+                                        const handleSelectChange = (event) => {
+                                        let value = event.target.value;
+
+                                        // Handle "All" option
+                                        if (value.includes("all")) {
+                                            if (field.value.length === feesData.installments.filter(i => !i.paid_status).length) {
+                                            // All already selected → clear all
+                                            value = [];
+                                            } else {
+                                            // Select all unpaid installments
+                                            value = feesData.installments
+                                                .filter(i => !i.paid_status)
+                                                .map(i => i.installment_number);
+                                            }
+                                        }
+
+                                        field.onChange(value);
+                                        };
+
+                                        return (
+                                        <Select
+                                            {...field}
+                                            multiple
+                                            label="installments"
+                                            value={field.value || []}
+                                            onChange={handleSelectChange}
+                                            renderValue={(selected) =>
+                                            selected.map((num) => `Installment ${num}`).join(", ")
+                                            }
+                                        >
+                                            {/* "All" option */}
+                                            <MenuItem value="all">
+                                            <Checkbox
+                                                checked={
+                                                field.value.length ===
+                                                feesData.installments.filter(i => !i.paid_status).length
                                                 }
-                                                onChange={(e) => {
-                                                    const selectedValues = e.target.value;
-                                                    field.onChange(selectedValues);
-                                                }}
+                                                indeterminate={
+                                                field.value.length > 0 &&
+                                                field.value.length < feesData.installments.filter(i => !i.paid_status).length
+                                                }
+                                            />
+                                            Select All
+                                            </MenuItem>
+
+                                            {/* Installments list */}
+                                            {feesData.installments.map((item) => (
+                                            <MenuItem
+                                                key={item.installment_number}
+                                                value={item.installment_number}
+                                                disabled={Boolean(item.paid_status)}
                                             >
-                                                {feesData.installments.map((item) => (
-                                                    <MenuItem
-                                                        key={item.installment_number}
-                                                        value={item.installment_number}
-                                                        disabled={Boolean(item.paid_status)}
-                                                    >
-                                                        <Checkbox
-                                                            checked={selectedInstallments.includes(item.installment_number)}
-                                                        />
-                                                        {item.name} - {item.due_date}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        )}
+                                                <Checkbox checked={field.value.includes(item.installment_number)} />
+                                                {item.name} - {item.due_date}
+                                            </MenuItem>
+                                            ))}
+                                        </Select>
+                                        );
+                                    }}
                                     />
                                 </FormControl>
                             </Grid>
@@ -206,7 +237,7 @@ const InstallmentPaymentDialog = ({ open, onClose, feesData, paymentModes }) => 
                 </DialogContent>
 
                 <DialogActions>
-                    <Button onClick={handleClose} variant="outlined">Cancel</Button>
+                    <Button onClick={() => handleClose(false)} variant="outlined">Cancel</Button>
                     <Button type="submit" color="primary" variant="contained">Submit</Button>
                 </DialogActions>
             </form>
