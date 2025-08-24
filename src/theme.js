@@ -1,6 +1,7 @@
 import { createContext, useState, useMemo, useEffect } from "react";
 import { createTheme } from "@mui/material/styles";
 import Gyankoonj_fav from "./Images/GKicon.png";
+import { getFilePreviewUrl } from "./Components/getFilePreviewUrl";
 
 // color design tokens export
 export const tokens = (mode) => ({
@@ -102,7 +103,7 @@ export const useMode = () => {
     const link = document.createElement('link');
     link.type = 'image/x-icon';
     link.rel = 'shortcut icon';
-    link.href = url;
+    link.href = getFilePreviewUrl(url) || Gyankoonj_fav;
   
     // Append to head
     document.head.appendChild(link);
