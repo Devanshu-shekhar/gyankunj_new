@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { useForm, Controller, set } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import {
     TextField,
     Grid,
@@ -14,6 +14,7 @@ import {
 import DropzoneSingle from "./DropzoneSingle";
 import DropzoneMultiple from "./DropzoneMultiple";
 import ColorPickerField from "./ColorPickerField";
+import { getFilePreviewUrl } from "../../getFilePreviewUrl";
 
 const LOCAL_STORAGE_KEY = "school_config";
 
@@ -109,12 +110,12 @@ const SchoolConfiguration = () => {
     const galleryFiles = useRef([]);
     const fileUploadsRef = useRef({});
 
-    const [logoPreview, setLogoPreview] = useState(savedData?.logo_url || null);
+    const [logoPreview, setLogoPreview] = useState(getFilePreviewUrl(savedData?.logo_url) || null);
     const [faviconPreview, setFaviconPreview] = useState(
-        savedData?.favicon_url || null
+        getFilePreviewUrl(savedData.favicon_url) || null
     );
     const [galleryPreviews, setGalleryPreviews] = useState(
-        savedData?.gallery || []
+        savedData.gallery.map(getFilePreviewUrl) || []
     );
 
     const handleLogoDrop = (files) => {
@@ -147,7 +148,7 @@ const SchoolConfiguration = () => {
         if (savedData?.file_uploads) {
             Object.entries(savedData.file_uploads).forEach(([key, value]) => {
                 if (value) {
-                    previews[key] = value; // keep base64 as preview
+                    previews[key] = getFilePreviewUrl(value); // keep base64 as preview
                 }
             });
         }
@@ -178,13 +179,23 @@ const SchoolConfiguration = () => {
         }
     };
 
-    const fileToBase64 = (file) =>
-        new Promise((resolve, reject) => {
+    const fileToBase64 = (file) => {
+        return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
+            reader.onload = () => {
+                const base64 = reader.result.split(",")[1];
+                resolve({
+                    mimetype: file.type,
+                    data: base64,
+                });
+            };
             reader.onerror = reject;
             reader.readAsDataURL(file);
         });
+    };
+
+
+
 
     const onSubmit = async (data) => {
         // Logo
@@ -228,6 +239,7 @@ const SchoolConfiguration = () => {
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(fullData));
         setOpenSnackbar(true);
     };
+
 
     const renderTextField = (
         name,

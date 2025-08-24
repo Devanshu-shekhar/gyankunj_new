@@ -12,6 +12,7 @@ import { TbSpeakerphone } from "react-icons/tb";
 import { Typography, useMediaQuery, useTheme } from "@mui/material";
 import { tokens } from "../theme";
 import SignInSide from "./SignInSide";
+import { getFilePreviewUrl } from "./getFilePreviewUrl";
 
 function Header({ isTabScreen, userData }) {
   const theme = useTheme();
@@ -54,7 +55,7 @@ function Header({ isTabScreen, userData }) {
     if (configStr) {
       try {
         const parsedConfig = JSON.parse(configStr);
-        Gyankoonj_logo = parsedConfig.logo_url || Gyankoonj_logo;
+        Gyankoonj_logo = getFilePreviewUrl(parsedConfig.logo_url) || Gyankoonj_logo;
       } catch (err) {
         console.warn("Invalid school config in localStorage");
       }
