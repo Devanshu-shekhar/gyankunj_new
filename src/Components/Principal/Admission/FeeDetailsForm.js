@@ -39,6 +39,8 @@ const FeeDetailsForm = ({ control, watch, setValue, feesStructuresList }) => {
 
   // Reset EMI fields if EMI is disabled
   useEffect(() => {
+    const totalEmi = Math.max(totalCharge - deposited - discount, 0);
+    setValue("payable_amount", totalEmi);
     if (!isEmiEnabled) {
       setValue("total_emi_amount", 0);
       setValue("number_of_installments", "");
@@ -108,26 +110,6 @@ const FeeDetailsForm = ({ control, watch, setValue, feesStructuresList }) => {
             )}
           />
         </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Controller
-            name="deposited_fees"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                type="number"
-                label="Deposited Fees"
-                fullWidth
-                margin="normal"
-                onChange={(e) =>
-                  field.onChange(e.target.value ? Number(e.target.value) : "")
-                }
-              />
-            )}
-          />
-        </Grid>
-
         <Grid item xs={12} md={6}>
           <Controller
             name="discounted_amount"
@@ -147,26 +129,68 @@ const FeeDetailsForm = ({ control, watch, setValue, feesStructuresList }) => {
           />
         </Grid>
 
-        {showEmi && (
-          <Grid item xs={12}>
-            <FormControl>
-              <Controller
-                name="is_emi_enabled"
-                control={control}
-                render={({ field }) => (
-                  <>
-                    <FormControlLabel
-                      control={<Checkbox {...field} checked={field.value || false} />}
-                      label="Enable EMI"
-                    />
-                    <Typography variant="body2" color="textSecondary" sx={{ ml: 4 }}>
-                      Check this to split remaining fees into installments.
-                    </Typography>
-                  </>
-                )}
+        <Grid item xs={12} md={6}>
+          <Controller
+            name="payable_amount"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                type="number"
+                label="Payable Amount"
+                fullWidth
+                margin="normal"
+                onChange={(e) =>
+                  field.onChange(e.target.value ? Number(e.target.value) : "")
+                }
               />
-            </FormControl>
-          </Grid>
+            )}
+          />
+        </Grid>
+
+        {showEmi && (
+          <>
+            <Grid item xs={12} md={6}>
+              <FormControl>
+                <Controller
+                  name="is_emi_enabled"
+                  control={control}
+                  render={({ field }) => (
+                    <>
+                      <FormControlLabel
+                        control={<Checkbox {...field} checked={field.value || false} />}
+                        label="Enable EMI"
+                      />
+                      <Typography variant="body2" color="textSecondary" sx={{ ml: 4 }}>
+                        Check this to split remaining fees into installments.
+                      </Typography>
+                    </>
+                  )}
+                />
+              </FormControl>
+            </Grid>
+            {isEmiEnabled && showEmi && (
+              <Grid item xs={12} md={6}>
+                <Controller
+                  name="deposited_fees"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      type="number"
+                      label="Deposited Fees"
+                      fullWidth
+                      margin="normal"
+                      onChange={(e) =>
+                        field.onChange(e.target.value ? Number(e.target.value) : "")
+                      }
+                    />
+                  )}
+                />
+              </Grid>
+            )}
+          </>
+
         )}
 
         {isEmiEnabled && showEmi && (

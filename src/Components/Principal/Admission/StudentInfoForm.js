@@ -131,7 +131,7 @@ const StudentInfoForm = ({ control, metadataList, watch, reset, setValue }) => {
                                 .map((option) => option.name)
                                 .join(", "),
                           }}
-                          value={field.value ?? []}
+                          value={field?.value ?? []}
                         >
                           {metadataList.languages.map((option) => (
                             <MenuItem key={option.id} value={option.id}>
@@ -155,7 +155,7 @@ const StudentInfoForm = ({ control, metadataList, watch, reset, setValue }) => {
                           select
                           variant="outlined"
                           error={!!fieldState.error}
-                          value={field.value ?? ""}
+                          value={field?.value ?? ""}
                           onChange={(e) =>
                             fieldItem.multiple
                               ? field.onChange(
@@ -250,11 +250,11 @@ const StudentInfoForm = ({ control, metadataList, watch, reset, setValue }) => {
                             {...field}
                             label={fieldItem.label}
                             variant="outlined"
-                            type={fieldItem.type === "email" ? "email" : "text"}
+                            type={fieldItem.type}
                             multiline={fieldItem.multiline || false}
                             rows={fieldItem.multiline ? 3 : 1}
                             error={!!fieldState.error}
-                            value={field.value ?? ""}
+                            value={field?.value ?? ""}
                             helperText={fieldState.error?.message}
                             inputProps={{ readOnly: fieldItem.readOnly || false }}
                           />

@@ -381,7 +381,7 @@ const CreateAdmission = ({
                               variant="outlined"
                               fullWidth
                               error={!!fieldState?.error}
-                              value={field.value ?? ""}
+                              value={field?.value ?? ""}
                             >
                               {Array.isArray(fieldItem.options) &&
                                 fieldItem.options.length > 0 ? (
@@ -504,7 +504,7 @@ const CreateAdmission = ({
                                       : "text"
                                   }
                                   error={!!fieldState?.error}
-                                  value={field.value ?? ""}
+                                  value={field?.value ?? ""}
                                   helperText={fieldState?.error?.message}
                                   inputProps={fieldItem.type === "number" ? { maxLength: 10 } : {}}
                                 />
