@@ -1,11 +1,12 @@
 import React, { useEffect } from "react";
 import { Box, Grid, Tab, Tabs } from "@mui/material";
-import FeesStructureView from "./Fees/FeesStructureView";
+import FeesStructureView from "./Earning/FeesStructureView";
 import ExpensesView from "./Expenses/ExpensesView";
-import FeeDetails from "./Fees/FeeDetails";
+import FeeDetails from "./Earning/FeeDetails";
 import { useLocation, useNavigate } from "react-router-dom";
-import AdmissionFeesView from "./Fees/AdmissionFeesView";
+import AdmissionFeesView from "./Earning/AdmissionFeesView";
 import PendingAdmissionsView from "./Report/PendingAdmissionsView";
+import PaymentsView from "./Earning/PaymentsView";
 
 const FinanceView = () => {
   const location = useLocation();
@@ -24,6 +25,7 @@ const FinanceView = () => {
       title: "Earning",
       content: (
         <div className="d-flex flex-column gap-5">
+          <PaymentsView />
           <AdmissionFeesView />
           <FeesStructureView />
           <FeeDetails />

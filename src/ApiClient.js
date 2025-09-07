@@ -566,6 +566,14 @@ const fetchPendingAdmissions = () => {
   return apiInstance.get(`/fetch_pending_admission_data`);
 }
 
+const fetchPaymentsList = (payload) => {
+  return apiInstance.post(`/fetch_payments`, payload);
+}
+
+const fetchBillDetails = (payload) => {
+  return apiInstance.post(`/fetch_bill`, payload);
+}
+
 
 export {
   //loginUser,
@@ -686,5 +694,7 @@ export {
   viewStaffAttendanceReport,
   createHoliday,
   makeDepositPayment,
-  fetchPendingAdmissions
+  fetchPendingAdmissions,
+  fetchPaymentsList,
+  fetchBillDetails
 };
