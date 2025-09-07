@@ -223,9 +223,9 @@ const FeesStructureView = () => {
   );
 
   return (
-    <>
+    <div>
       <Box
-        sx={{ display: "flex", justifyContent: "flex-end", marginBottom: 2 }}
+        sx={{ display: "flex", justifyContent: "flex-end", marginBottom: 1 }}
       >
         <Button variant="contained" onClick={() => setIsModalVisible(true)}>
           Create Fees Structure
@@ -275,7 +275,7 @@ const FeesStructureView = () => {
           alertFor: alert.type,
           message: alert.message,
         })}
-    </>
+    </div>
   );
 };
 

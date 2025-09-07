@@ -562,6 +562,10 @@ const makeDepositPayment = (payload) => {
   return apiInstance.post(`/make_deposit_payment`, payload);
 }
 
+const fetchPendingAdmissions = () => {
+  return apiInstance.get(`/fetch_pending_admission_data`);
+}
+
 
 export {
   //loginUser,
@@ -681,5 +685,6 @@ export {
   viewStudentAttendanceReport,
   viewStaffAttendanceReport,
   createHoliday,
-  makeDepositPayment
+  makeDepositPayment,
+  fetchPendingAdmissions
 };

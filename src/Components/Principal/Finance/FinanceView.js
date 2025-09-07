@@ -4,7 +4,8 @@ import FeesStructureView from "./Fees/FeesStructureView";
 import ExpensesView from "./Expenses/ExpensesView";
 import FeeDetails from "./Fees/FeeDetails";
 import { useLocation, useNavigate } from "react-router-dom";
-import AdmissionFeesView from "./Report/AdmissionFeesView";
+import AdmissionFeesView from "./Fees/AdmissionFeesView";
+import PendingAdmissionsView from "./Report/PendingAdmissionsView";
 
 const FinanceView = () => {
   const location = useLocation();
@@ -15,15 +16,16 @@ const FinanceView = () => {
       code: "report",
       title: "Report",
       content: (
-        <AdmissionFeesView />
+        <PendingAdmissionsView />
       ),
     },
     {
       code: "earning",
       title: "Earning",
       content: (
-        <div>
-          <FeesStructureView /> <hr className="my-5" />
+        <div className="d-flex flex-column gap-5">
+          <AdmissionFeesView />
+          <FeesStructureView />
           <FeeDetails />
         </div>
       ),
@@ -35,7 +37,7 @@ const FinanceView = () => {
     const queryParams = new URLSearchParams(location.search);
     const activeView = queryParams.get("activeView") || tabsList[0].code;
     setSelectedTab(activeView);
-  }, [location.search]);
+  }, []);
 
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue);

@@ -9,7 +9,7 @@ import {
   Container,
   Paper,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { showAlertMessage } from "../../AlertMessage";
 import {
@@ -27,6 +27,7 @@ import CollectDepositForm from "./CollectDepositForm";
 const steps = ["Personal Info", "Fees Details", "Collect Deposit"];
 
 const AdmissionStepperPage = () => {
+  const location = useLocation();
   const [activeStep, setActiveStep] = useState(0);
   const [showAlert, setShowAlert] = useState("");
   const navigate = useNavigate();
@@ -53,6 +54,29 @@ const AdmissionStepperPage = () => {
 
   useEffect(() => {
     fetchPaymentModesList();
+  }, []);
+
+  useEffect(() => {
+    // Parse query params
+    const queryParams = (() => {
+      const rawQuery = location.search.replace("?", "").split(";");
+      const parsedParams = {};
+      rawQuery.forEach((item) => {
+        const [key, value] = item.split("=");
+        parsedParams[key] = decodeURIComponent(value);
+      });
+      return parsedParams;
+    })();
+
+    const userId = queryParams.user_id;
+    const totalAdmissionCharge = queryParams.total_admission_charge;
+    if (userId && totalAdmissionCharge) {
+      setValueSecond("user_id", userId);
+      setValueThird("user_id", userId);
+      setValueSecond("total_admission_charge", totalAdmissionCharge);
+      setValueThird("transaction_amount", totalAdmissionCharge);
+      setActiveStep(1);
+    }
   }, []);
 
   const fetchPaymentModesList = async () => {
