@@ -56,7 +56,7 @@ const FeeDetails = ({ isParentView = false }) => {
   };
 
   return (
-    <Box mt={4}>
+    <Box>
       <Typography variant="h6" fontWeight="bold" marginBottom={1}>
         Get Fee Details
       </Typography>

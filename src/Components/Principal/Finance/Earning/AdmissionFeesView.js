@@ -3,7 +3,6 @@ import { Button, Typography } from "@mui/material";
 import { fetchAdmissionFeesInfo, fetchPaymentModes } from "../../../../ApiClient";
 import CommonMatTable from "../../../../SharedComponents/CommonMatTable";
 import InstallmentPaymentDialog from "./InstallmentPaymentDialog";
-import { set } from "react-hook-form";
 
 const AdmissionFeesView = () => {
     const [admissionFeesList, setAdmissionFeesList] = useState([]);

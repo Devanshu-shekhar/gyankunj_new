@@ -86,19 +86,32 @@ const CommonMatTable = ({
 
 
   });
+return (
+<Paper
+  elevation={3}
+  sx={{
+    borderRadius: "12px",
+    overflow: "hidden",
+    border: "1px solid #e0e0e0",
+    transition: "box-shadow 0.3s ease-in-out",
+    "&:hover": {
+      boxShadow: "0 8px 30px rgba(25, 118, 210, 0.4)", // blue shadow
+    },
+    // apply styles to table cells
+    "& .MuiTableCell-root": {
+      transition: "transform 0.15s ease, box-shadow 0.15s ease",
+    },
+    "&:hover .MuiTableCell-root": {
+      transform: "scale(1.05)", // smooth zoom effect
+      boxShadow: "0 2px 8px rgba(25, 118, 210, 0.15)", // subtle blue glow
+    },
+  }}
+>
+  <MaterialReactTable table={table} />
+</Paper>
+);
 
-  return (
-    <Paper
-      elevation={3}
-      sx={{
-        borderRadius: "12px",
-        overflow: "hidden",
-        border: "1px solid #e0e0e0",
-      }}
-    >
-      <MaterialReactTable table={table} />
-    </Paper>
-  );
+
 };
 
 export default CommonMatTable;
