@@ -112,10 +112,10 @@ const SchoolConfiguration = () => {
 
     const [logoPreview, setLogoPreview] = useState(getFilePreviewUrl(savedData?.logo_url) || null);
     const [faviconPreview, setFaviconPreview] = useState(
-        getFilePreviewUrl(savedData.favicon_url) || null
+        getFilePreviewUrl(savedData?.favicon_url) || null
     );
     const [galleryPreviews, setGalleryPreviews] = useState(
-        savedData.gallery.map(getFilePreviewUrl) || []
+        savedData?.gallery.map(getFilePreviewUrl) || []
     );
 
     const handleLogoDrop = (files) => {
