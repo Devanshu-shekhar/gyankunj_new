@@ -10,6 +10,7 @@ import {
   Typography,
   Box,
 } from "@mui/material";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 // Import all images
 import assignmentIcon from "../../Images/assignment-icon.jpg";
@@ -75,14 +76,22 @@ const ResponsiveCard = ({ image, title, description, route, report }) => {
   const navigate = useNavigate();
 
   return (
-    <Card style={{ height: "100%" }}>
+    <Card
+      sx={{
+        height: "100%",
+        transition: "transform 0.3s ease, box-shadow 0.3s ease",
+        "&:hover": {
+          transform: "scale(1.05)",
+          boxShadow: "0 8px 30px rgba(0,0,0,0.3)",
+        },
+      }}
+    >
       <CardMedia
         className="object-fit-contain"
         component="img"
         alt={title}
         height="140"
         image={image}
-        title={title}
       />
       <CardContent>
         <Typography gutterBottom variant="h5" component="div">
@@ -93,7 +102,7 @@ const ResponsiveCard = ({ image, title, description, route, report }) => {
         </Typography>
         {title === "Report" && report && (
           <Box>
-            <hr /> 
+            <hr />
             <Typography variant="body2" color="text.secondary">
               <strong>Total Assignments:</strong> {report.total_assignments}
             </Typography>
@@ -113,9 +122,10 @@ const ResponsiveCard = ({ image, title, description, route, report }) => {
         <Button
           variant="contained"
           size="small"
+          endIcon={<ArrowForwardIosIcon />}
           onClick={() => navigate(route)}
         >
-          More
+          Go
         </Button>
       </CardActions>
     </Card>
@@ -123,7 +133,6 @@ const ResponsiveCard = ({ image, title, description, route, report }) => {
 };
 
 const PaDashboard = () => {
-  
   return (
     <Container>
       <Grid container spacing={4}>
