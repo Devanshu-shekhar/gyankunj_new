@@ -574,6 +574,29 @@ const fetchBillDetails = (payload) => {
   return apiInstance.post(`/fetch_bill`, payload);
 }
 
+const submitSchoolOnboarding = (data) => {
+  return apiInstance.post(`/save_onboarding_data`, data);
+}
+
+const submitSchoolEventGallery = (data) => {
+  return apiInstance.post(`/save_event_data`, data);
+}
+
+const submitSchoolUploadFiles = (data) => {
+  return apiInstance.post(`/upload_data`, data);
+}
+
+const fetchSchoolOnboarding = () => {
+  return apiInstance.get(`/fetch_onboarding_data`);
+}
+
+const fetchSchoolEventGallery = () => {
+  return apiInstance.get(`/fetch_event_data`);
+}
+
+const fetchSchoolUploadFiles = () => {
+  return apiInstance.get(`/fetch_uploaded_data`);
+}
 
 export {
   //loginUser,
@@ -696,5 +719,11 @@ export {
   makeDepositPayment,
   fetchPendingAdmissions,
   fetchPaymentsList,
-  fetchBillDetails
+  fetchBillDetails,
+  submitSchoolOnboarding,
+  submitSchoolEventGallery,
+  submitSchoolUploadFiles,
+  fetchSchoolOnboarding,
+  fetchSchoolEventGallery,
+  fetchSchoolUploadFiles
 };
