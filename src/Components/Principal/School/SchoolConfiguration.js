@@ -8,13 +8,45 @@ import {
   Box,
 } from "@mui/material";
 import { useForm } from "react-hook-form";
-import axios from "axios";
 
 import StepOneForm from "./StepOneForm";   // ⬅️ Split step content into smaller components
 import StepTwoForm from "./StepTwoForm";
 import StepThreeForm from "./StepThreeForm";
+import { fetchSchoolEventGallery, fetchSchoolOnboarding, fetchSchoolUploadFiles, submitSchoolEventGallery, submitSchoolOnboarding, submitSchoolUploadFiles } from "../../../ApiClient";
 
 const steps = ["School Onboarding", "Upload Master Sheet", "Event Gallery"];
+
+const stepOneDefaults = {
+  school_name: "",
+  tagline: "",
+  logo_info: null,
+  favicon_info: null,
+  primary_color: "#000000",
+  secondary_color: "#000000",
+  accent_color: "#000000",
+  font_family: "",
+  active_language: "en",
+  contact_email: "",
+  contact_phone: "",
+  website_url: "",
+  school_code: "",
+  branch_code: "",
+  address: {
+    line1: "",
+    line2: "",
+    city: "",
+    state: "",
+    postal_code: "",
+    country: "",
+  },
+  social_links: {
+    facebook: "",
+    twitter: "",
+    instagram: "",
+    linkedin: "",
+  },
+  fees_terms_and_conditions: "",
+};
 
 const SchoolConfigurationStepper = () => {
   const [activeStep, setActiveStep] = useState(0);
@@ -27,15 +59,19 @@ const SchoolConfigurationStepper = () => {
     const fetchStepData = async () => {
       try {
         setLoading(true);
-        let url = "";
-        if (activeStep === 0) url = "/api/v1/school/onboarding";
-        if (activeStep === 1) url = "/api/v1/school/master-sheets";
-        if (activeStep === 2) url = "/api/v1/school/event-gallery";
-
-        const res = await axios.get(url);
-        if (res.data) {
-          reset(res.data); // ⬅️ prefill form values
-        }
+        let response;
+        reset(stepOneDefaults);
+        // if (activeStep === 0) {
+        //   response = await fetchSchoolOnboarding();
+        //   // Merge with defaults so no field is missing
+        //   reset({ ...stepOneDefaults, ...response?.data });
+        // } else if (activeStep === 1) {
+        //   response = await fetchSchoolUploadFiles();
+        //   reset(response?.data || {}); // no defaults
+        // } else if (activeStep === 2) {
+        //   response = await fetchSchoolEventGallery();
+        //   reset(response?.data || {}); // no defaults
+        // }
       } catch (err) {
         console.error("Fetch error:", err);
       } finally {
@@ -50,22 +86,30 @@ const SchoolConfigurationStepper = () => {
   const handleNext = async (data) => {
     try {
       setLoading(true);
-      let url = "";
-      if (activeStep === 0) url = "/api/v1/school/onboarding";
-      if (activeStep === 1) url = "/api/v1/school/master-sheets";
-      if (activeStep === 2) url = "/api/v1/school/event-gallery";
+      let response;
 
-      await axios.post(url, data); // ⬅️ SAVE API
+      if (activeStep === 0) {
+        response = await submitSchoolOnboarding(data);
+      } else if (activeStep === 1) {
+        response = await submitSchoolUploadFiles(data);
+      } else if (activeStep === 2) {
+        response = await submitSchoolEventGallery(data);
+      }
 
-      // Move to next only after success
-      setActiveStep((prev) => prev + 1);
+      // Move to next only if API returns success
+      if (response?.status) {
+        setActiveStep((prev) => prev + 1);
+      } else {
+        throw new Error(response?.message || "Step validation failed");
+      }
     } catch (err) {
       console.error("Save error:", err);
-      alert("Please complete this step before continuing.");
+      alert(err.message || "Please complete this step before continuing.");
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleBack = () => {
     setActiveStep((prev) => prev - 1);

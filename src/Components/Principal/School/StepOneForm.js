@@ -20,7 +20,7 @@ const StepOneForm = ({ control, setValue }) => {
       setValue(fieldName, {
         file_name: file.name,
         mime_type: file.type,
-        data: reader.result.split(",")[1], // strip prefix
+        data: reader.result.split(",")[1],
       });
     };
     reader.readAsDataURL(file);
@@ -51,62 +51,105 @@ const StepOneForm = ({ control, setValue }) => {
         <Controller
           name="tagline"
           control={control}
-          render={({ field }) => (
-            <TextField {...field} label="Tagline" fullWidth />
+          rules={{ required: "Tagline is required" }}
+          render={({ field, fieldState }) => (
+            <TextField
+              {...field}
+              label="Tagline"
+              fullWidth
+              error={!!fieldState.error}
+              helperText={fieldState.error?.message}
+            />
           )}
         />
       </Grid>
 
       {/* Logo Upload */}
       <Grid item xs={12} sm={6}>
-        <Dropzone
-          accept={{ "image/*": [] }}
-          maxFiles={1}
-          onDrop={(files) => handleFileUpload(files[0], "logo_info")}
-        >
-          {({ getRootProps, getInputProps }) => (
-            <div
-              {...getRootProps()}
-              style={{
-                border: "2px dashed #1976d2",
-                borderRadius: "8px",
-                padding: "20px",
-                textAlign: "center",
-                cursor: "pointer",
-                background: "#f9f9f9",
-              }}
-            >
-              <input {...getInputProps()} />
-              <p>Click or Drag & Drop to upload Logo (Max 2MB)</p>
-            </div>
+        <Controller
+          name="logo_info"
+          control={control}
+          render={({ field }) => (
+            <>
+              <Dropzone
+                accept={{ "image/*": [] }}
+                maxFiles={1}
+                onDrop={(files) => {
+                  handleFileUpload(files[0], "logo_info");
+                  field.onChange({
+                    file_name: files[0].name,
+                    mime_type: files[0].type,
+                  });
+                }}
+              >
+                {({ getRootProps, getInputProps }) => (
+                  <div
+                    {...getRootProps()}
+                    style={{
+                      border: "2px dashed #1976d2",
+                      borderRadius: "8px",
+                      padding: "20px",
+                      textAlign: "center",
+                      cursor: "pointer",
+                      background: "#f9f9f9",
+                    }}
+                  >
+                    <input {...getInputProps()} />
+                    <p>
+                      {field.value?.file_name
+                        ? `Uploaded: ${field.value.file_name}`
+                        : "Click or Drag & Drop to upload Logo (Max 2MB)"}
+                    </p>
+                  </div>
+                )}
+              </Dropzone>
+            </>
           )}
-        </Dropzone>
+        />
       </Grid>
 
       {/* Favicon Upload */}
       <Grid item xs={12} sm={6}>
-        <Dropzone
-          accept={{ "image/*": [] }}
-          maxFiles={1}
-          onDrop={(files) => handleFileUpload(files[0], "favicon_info")}
-        >
-          {({ getRootProps, getInputProps }) => (
-            <div
-              {...getRootProps()}
-              style={{
-                border: "2px dashed #1976d2",
-                borderRadius: "8px",
-                padding: "20px",
-                textAlign: "center",
-                cursor: "pointer",
-                background: "#f9f9f9",
-              }}
-            >
-              <input {...getInputProps()} />
-              <p>Click or Drag & Drop to upload Favicon (Max 2MB)</p>
-            </div>
+        <Controller
+          name="favicon_info"
+          control={control}
+          render={({ field }) => (
+            <>
+              <Dropzone
+                accept={{ "image/*": [] }}
+                maxFiles={1}
+                onDrop={(files) => {
+                  handleFileUpload(files[0], "favicon_info");
+                  field.onChange({
+                    file_name: files[0].name,
+                    mime_type: files[0].type,
+                  });
+                }}
+              >
+                {({ getRootProps, getInputProps }) => (
+                  <div
+                    {...getRootProps()}
+                    style={{
+                      border: "2px dashed #1976d2",
+                      borderRadius: "8px",
+                      padding: "20px",
+                      textAlign: "center",
+                      cursor: "pointer",
+                      background: "#f9f9f9",
+                    }}
+                  >
+                    <input {...getInputProps()} />
+                    <p>
+                      {field.value?.file_name
+                        ? `Uploaded: ${field.value.file_name}`
+                        : "Click or Drag & Drop to upload Favicon (Max 2MB)"}
+                    </p>
+                  </div>
+                )}
+              </Dropzone>
+            </>
           )}
-        </Dropzone>
+        />
       </Grid>
 
       {/* Colors */}
@@ -114,8 +157,16 @@ const StepOneForm = ({ control, setValue }) => {
         <Controller
           name="primary_color"
           control={control}
-          render={({ field }) => (
-            <TextField {...field} type="color" label="Primary Color" fullWidth />
+          rules={{ required: "Primary color is required" }}
+          render={({ field, fieldState }) => (
+            <TextField
+              {...field}
+              type="color"
+              label="Primary Color"
+              fullWidth
+              error={!!fieldState.error}
+              helperText={fieldState.error?.message}
+            />
           )}
         />
       </Grid>
@@ -123,8 +174,16 @@ const StepOneForm = ({ control, setValue }) => {
         <Controller
           name="secondary_color"
           control={control}
-          render={({ field }) => (
-            <TextField {...field} type="color" label="Secondary Color" fullWidth />
+          rules={{ required: "Secondary color is required" }}
+          render={({ field, fieldState }) => (
+            <TextField
+              {...field}
+              type="color"
+              label="Secondary Color"
+              fullWidth
+              error={!!fieldState.error}
+              helperText={fieldState.error?.message}
+            />
           )}
         />
       </Grid>
@@ -132,8 +191,16 @@ const StepOneForm = ({ control, setValue }) => {
         <Controller
           name="accent_color"
           control={control}
-          render={({ field }) => (
-            <TextField {...field} type="color" label="Accent Color" fullWidth />
+          rules={{ required: "Accent color is required" }}
+          render={({ field, fieldState }) => (
+            <TextField
+              {...field}
+              type="color"
+              label="Accent Color"
+              fullWidth
+              error={!!fieldState.error}
+              helperText={fieldState.error?.message}
+            />
           )}
         />
       </Grid>
@@ -169,11 +236,18 @@ const StepOneForm = ({ control, setValue }) => {
         />
       </Grid>
 
+      {/* Contact Email */}
       <Grid item xs={12} sm={6}>
         <Controller
           name="contact_email"
           control={control}
-          rules={{ required: "Contact Email is required" }}
+          rules={{
+            required: "Contact Email is required",
+            pattern: {
+              value: /^\S+@\S+$/i,
+              message: "Enter a valid email address",
+            },
+          }}
           render={({ field, fieldState }) => (
             <TextField
               {...field}
@@ -186,11 +260,18 @@ const StepOneForm = ({ control, setValue }) => {
         />
       </Grid>
 
+      {/* Contact Phone */}
       <Grid item xs={12} sm={6}>
         <Controller
           name="contact_phone"
           control={control}
-          rules={{ required: "Contact Phone is required" }}
+          rules={{
+            required: "Contact Phone is required",
+            pattern: {
+              value: /^[0-9]{10}$/,
+              message: "Enter a valid 10-digit phone number",
+            },
+          }}
           render={({ field, fieldState }) => (
             <TextField
               {...field}
@@ -203,11 +284,19 @@ const StepOneForm = ({ control, setValue }) => {
         />
       </Grid>
 
+      {/* Website */}
       <Grid item xs={12}>
         <Controller
           name="website_url"
           control={control}
-          rules={{ required: "Website URL is required" }}
+          rules={{
+            required: "Website URL is required",
+            pattern: {
+              value:
+                /^(https?:\/\/)?([\w-]+(\.[\w-]+)+)([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/,
+              message: "Enter a valid URL",
+            },
+          }}
           render={({ field, fieldState }) => (
             <TextField
               {...field}
@@ -355,12 +444,21 @@ const StepOneForm = ({ control, setValue }) => {
           <Controller
             name={`social_links.${social}`}
             control={control}
-            render={({ field }) => (
-                <TextField
-                    {...field}
-                    label={`${social?.charAt(0).toUpperCase()}${social?.slice(1)} URL`}
-                    fullWidth
-                />
+            rules={{
+              pattern: {
+                value:
+                  /^(https?:\/\/)?([\w-]+(\.[\w-]+)+)([\w.,@?^=%&:/~+#-]*[\w@?^=%&/~+#-])?$/,
+                message: "Enter a valid URL",
+              },
+            }}
+            render={({ field, fieldState }) => (
+              <TextField
+                {...field}
+                label={`${social.charAt(0).toUpperCase()}${social.slice(1)} URL`}
+                fullWidth
+                error={!!fieldState.error}
+                helperText={fieldState.error?.message}
+              />
             )}
           />
         </Grid>
