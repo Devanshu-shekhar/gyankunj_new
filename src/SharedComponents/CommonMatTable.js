@@ -102,7 +102,7 @@ return (
       transition: "transform 0.15s ease, box-shadow 0.15s ease",
     },
     "&:hover .MuiTableCell-root": {
-      transform: "scale(1.05)", // smooth zoom effect
+      //transform: "scale(1.05)", // smooth zoom effect
       boxShadow: "0 2px 8px rgba(25, 118, 210, 0.15)", // subtle blue glow
     },
   }}

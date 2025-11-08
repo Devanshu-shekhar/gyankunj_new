@@ -165,7 +165,7 @@ const LandingDashboard = ({ mainContainer }) => {
             ].map((title, index) => (
               <div
                 key={index}
-                className="card m-4 p-3 shadow-sm text-left"
+                className="card m-4 p-3 shadow-sm text-left custom-card"
                 style={{ width: 300, height: 300 }}
               >
                 <span className="h4 font-weight-bold mb-2 text-primary-emphasis">
@@ -190,7 +190,7 @@ const LandingDashboard = ({ mainContainer }) => {
           provide students with feedback all in one place.
         </p>
         <div className="images">
-          <div className="image-container mb-4">
+          <div className="image-container mb-4 custom-card">
             <img src={teacher} alt="teacher" className="teacher-image w-100" />
             <div className="hover-content">
               <p>FOR INSTRUCTORS</p>
@@ -204,7 +204,7 @@ const LandingDashboard = ({ mainContainer }) => {
             </div>
           </div>
 
-          <div className="image-container mb-4">
+          <div className="image-container mb-4 custom-card">
             <img src={student} alt="student" className="w-100" />
             <div className="hover-content">
               <p>FOR STUDENTS</p>
@@ -222,7 +222,7 @@ const LandingDashboard = ({ mainContainer }) => {
           </div>
         </div>
         <div className="images">
-          <div className="image-container">
+          <div className="image-container custom-card">
             <img
               src={parent}
               height="400px"
@@ -252,7 +252,7 @@ const LandingDashboard = ({ mainContainer }) => {
             </div>
           </div>
 
-          <div className="image-container">
+          <div className="image-container custom-card">
             <img src={admin} className="w-100" alt="student" />
             <div className="hover-content">
               <p>FOR ADMINISTRATION</p>
