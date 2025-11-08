@@ -78,7 +78,7 @@ const ResponsiveCard = ({ image, title, description, route, report }) => {
   const navigate = useNavigate();
 
   return (
-    <Card style={{ height: "100%" }}>
+    <Card className="custom-card" style={{ height: "100%" }}>
       <CardMedia
         className="object-fit-contain"
         component="img"

@@ -76,16 +76,7 @@ const ResponsiveCard = ({ image, title, description, route, report }) => {
   const navigate = useNavigate();
 
   return (
-    <Card
-      sx={{
-        height: "100%",
-        transition: "transform 0.3s ease, box-shadow 0.3s ease",
-        "&:hover": {
-          transform: "scale(1.05)",
-          boxShadow: "0 8px 30px rgba(0,0,0,0.3)",
-        },
-      }}
-    >
+    <Card className="custom-card">
       <CardMedia
         className="object-fit-contain"
         component="img"

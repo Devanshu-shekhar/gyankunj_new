@@ -117,6 +117,7 @@ const SchoolConfigurationStepper = () => {
       setShowAlert("error");
     } finally {
       setLoading(false);
+      setTimeout(() => setShowAlert(""), 3000);
     }
   };
 
@@ -197,7 +198,7 @@ const SchoolConfigurationStepper = () => {
         showAlertMessage({
           open: true,
           alertFor: showAlert,
-          message: `${steps[activeStep]} ${showAlert === "success" ? "succeeded ✅" : "failed ❌"
+          message: `${steps[activeStep-1]} ${showAlert === "success" ? "succeeded ✅" : "failed ❌"
             }`,
         })}
     </>
