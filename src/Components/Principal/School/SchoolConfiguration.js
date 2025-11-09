@@ -15,7 +15,7 @@ import StepThreeForm from "./StepThreeForm";
 import { fetchSchoolEventGallery, fetchSchoolOnboarding, fetchSchoolUploadFiles, submitSchoolEventGallery, submitSchoolOnboarding, submitSchoolUploadFiles } from "../../../ApiClient";
 import { showAlertMessage } from "../../AlertMessage";
 
-const steps = ["School Onboarding", "Upload Master Sheet", "Event Gallery"];
+const steps = ["School Onboarding", "Upload Master Sheet"];
 
 const stepOneDefaults = {
   school_name: "",
