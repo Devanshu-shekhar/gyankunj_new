@@ -1,0 +1,19 @@
+.event-gallery-page .card {
+  border-radius: 12px;
+}
+
+.event-gallery-page .preview-img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border: 2px solid #dee2e6;
+  padding: 3px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.event-gallery-page .list-group-item.active {
+  background-color: #0d6efd !important;
+  border-color: #0d6efd !important;
+  color: #fff !important;
+}

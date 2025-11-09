@@ -70,8 +70,7 @@ const StepOneForm = ({ control, setValue }) => {
           name="logo_info"
           control={control}
           render={({ field }) => (
-            <>
-              <Dropzone
+            <Dropzone
                 accept={{ "image/*": [] }}
                 maxFiles={1}
                 onDrop={(files) => {
@@ -95,6 +94,14 @@ const StepOneForm = ({ control, setValue }) => {
                     }}
                   >
                     <input {...getInputProps()} />
+                    {field.value?.data ? (
+                      <img
+                        src={`data:${field.value.mime_type};base64,${field.value.data}`}
+                        alt="Logo Preview"
+                        style={{ width: 80, height: 80, objectFit: "contain", marginBottom: 10 }}
+                      />
+                    ) : null}
+
                     <p>
                       {field.value?.file_name
                         ? `Uploaded: ${field.value.file_name}`
@@ -103,7 +110,6 @@ const StepOneForm = ({ control, setValue }) => {
                   </div>
                 )}
               </Dropzone>
-            </>
           )}
         />
       </Grid>
@@ -114,40 +120,46 @@ const StepOneForm = ({ control, setValue }) => {
           name="favicon_info"
           control={control}
           render={({ field }) => (
-            <>
-              <Dropzone
-                accept={{ "image/*": [] }}
-                maxFiles={1}
-                onDrop={(files) => {
-                  handleFileUpload(files[0], "favicon_info");
-                  field.onChange({
-                    file_name: files[0].name,
-                    mime_type: files[0].type,
-                  });
-                }}
-              >
-                {({ getRootProps, getInputProps }) => (
-                  <div
-                    {...getRootProps()}
-                    style={{
-                      border: "2px dashed #1976d2",
-                      borderRadius: "8px",
-                      padding: "20px",
-                      textAlign: "center",
-                      cursor: "pointer",
-                      background: "#f9f9f9",
-                    }}
-                  >
-                    <input {...getInputProps()} />
-                    <p>
-                      {field.value?.file_name
-                        ? `Uploaded: ${field.value.file_name}`
-                        : "Click or Drag & Drop to upload Favicon (Max 2MB)"}
-                    </p>
-                  </div>
-                )}
-              </Dropzone>
-            </>
+            <Dropzone
+              accept={{ "image/*": [] }}
+              maxFiles={1}
+              onDrop={(files) => {
+                handleFileUpload(files[0], "favicon_info");
+                field.onChange({
+                  file_name: files[0].name,
+                  mime_type: files[0].type,
+                });
+              }}
+            >
+              {({ getRootProps, getInputProps }) => (
+                <div
+                  {...getRootProps()}
+                  style={{
+                    border: "2px dashed #1976d2",
+                    borderRadius: "8px",
+                    padding: "20px",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    background: "#f9f9f9",
+                  }}
+                >
+                  <input {...getInputProps()} />
+                  {field.value?.data ? (
+                    <img
+                      src={`data:${field.value.mime_type};base64,${field.value.data}`}
+                      alt="Logo Preview"
+                      style={{ width: 80, height: 80, objectFit: "contain", marginBottom: 10 }}
+                    />
+                  ) : null}
+
+                  <p>
+                    {field.value?.file_name
+                      ? `Uploaded: ${field.value.file_name}`
+                      : "Click or Drag & Drop to upload Logo (Max 2MB)"}
+                  </p>
+                </div>
+              )}
+            </Dropzone>
           )}
         />
       </Grid>

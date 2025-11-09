@@ -276,7 +276,7 @@ const AssignmentSheet = (props) => {
       console.log("Time's up! Auto-submitting...");
       saveOrSubmitAssignment(true);
     }
-  }, [timeLeft, props.assignmentType, assignmentStatus]);
+  }, [timeLeft]);
 
 
   return (

@@ -59,6 +59,7 @@ const EmployeeAttendanceView = lazy(() => import("./Principal/HRMS/EmployeeAtten
 const UserCalendar = lazy(() => import("./UserCalendar"));
 const SchoolConfiguration = lazy(() => import("./Principal/School/SchoolConfiguration"));
 const AdmissionStepperPage = lazy(() => import("./Principal/Admission/AdmissionStepperPage"));
+const EventGalleryPage = lazy(() => import("./Principal/School/EventGalleryPage"));
 
 // Define routes for different user roles
 const roleRoutes = {
@@ -342,6 +343,10 @@ export default function RoutesContainer({ userData, mainContainerRef }) {
         <Route
           path="/calendar"
           element={<ProtectedWrapper Component={UserCalendar} />}
+        />
+        <Route
+          path="/galleryView"
+          element={<ProtectedWrapper Component={EventGalleryPage} />}
         />
         {/* 404 Route */}
         <Route

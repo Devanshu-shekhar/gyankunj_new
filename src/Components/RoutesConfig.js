@@ -12,6 +12,7 @@ import LibraryBooksOutlinedIcon from '@mui/icons-material/LibraryBooksOutlined';
 import DirectionsBusFilledOutlinedIcon from '@mui/icons-material/DirectionsBusFilledOutlined';
 import Groups2OutlinedIcon from '@mui/icons-material/Groups2Outlined';
 import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
+import { Settings, Image } from "@mui/icons-material";
 
 export const routesConfig = {
   ADMIN: [
@@ -24,9 +25,15 @@ export const routesConfig = {
     {
       code: "schoolConfiguration",
       title: "School Configuration",
-      icon: <HomeOutlinedIcon />,
+      icon: <Settings />,
       route: "/principalDashboard/schoolConfiguration",
-    },    
+    },  
+    {
+      code: "galleryView",
+      title: "Gallery",
+      icon: <Image />,
+      route: "/galleryView",
+    },  
     {
       code: "masterRoutine",
       title: "Master Routine",
@@ -130,7 +137,13 @@ export const routesConfig = {
       title: "School Diary",
       icon: <SourceOutlinedIcon />,
       route: "/principalDashboard/schoolDiary",
-    }
+    },
+    {
+      code: "galleryView",
+      title: "Gallery",
+      icon: <Image />,
+      route: "/galleryView",
+    },  
   ],
   TEACHER: [
     {
@@ -187,6 +200,12 @@ export const routesConfig = {
       icon: <AssignmentOutlinedIcon />,
       route: "/onlineCoding",
     },
+    {
+      code: "galleryView",
+      title: "Gallery",
+      icon: <Image />,
+      route: "/galleryView",
+    },  
   ],
   STUDENT: [
     {
@@ -213,6 +232,12 @@ export const routesConfig = {
       icon: <AssignmentOutlinedIcon />,
       route: "/studentDashboard/reports",
     },
+    {
+      code: "galleryView",
+      title: "Gallery",
+      icon: <Image />,
+      route: "/galleryView",
+    } 
   ],
   PARENT: [
     {
@@ -251,5 +276,11 @@ export const routesConfig = {
       icon: <FeedbackOutlinedIcon />,
       route: "/parentDashboard/feedback",
     },
+    {
+      code: "galleryView",
+      title: "Gallery",
+      icon: <Image />,
+      route: "/galleryView",
+    }
   ],
 };

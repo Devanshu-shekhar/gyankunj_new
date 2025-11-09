@@ -598,6 +598,18 @@ const fetchSchoolUploadFiles = () => {
   return apiInstance.get(`/fetch_uploaded_data`);
 }
 
+const fetchEventsMetadata = () => {
+  return apiInstance.get(`/fetch_events_metadata`);
+}
+
+const fetchEventImages = (event_id, page, limit) => {
+  return apiInstance.get(`/fetch_event_images?event_id=${event_id}&page=${page}&limit=${limit}`);
+}
+
+const saveEventImages = (payload) => {
+  return apiInstance.post(`/save_event_data`, payload);
+}
+
 export {
   //loginUser,
   evaluteAssignment,
@@ -725,5 +737,8 @@ export {
   submitSchoolUploadFiles,
   fetchSchoolOnboarding,
   fetchSchoolEventGallery,
-  fetchSchoolUploadFiles
+  fetchSchoolUploadFiles,
+  fetchEventsMetadata,
+  fetchEventImages,
+  saveEventImages,
 };
