@@ -128,7 +128,7 @@ const CustomMasterRoutine = () => {
   };
 
   const handleClickOpen = (data, sectionList = [], period) => {
-    if (period !== "Break" && data) {
+    if (period && data) {
       setSelectedRoutineData(data);
       setSelectedSectionData(sectionList);
       setIsAddRoutineModalVisible(true);
@@ -308,6 +308,7 @@ const CustomMasterRoutine = () => {
           sectionsList={selectedSectionData}
           teachersList={teacherData}
           subjectsList={subjectsList}
+          masterRoutine={masterRoutineData}
         />
       )}
       {showAlert &&

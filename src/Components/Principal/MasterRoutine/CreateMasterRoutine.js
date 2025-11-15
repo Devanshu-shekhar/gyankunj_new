@@ -41,6 +41,7 @@ const CreateMasterRoutine = ({
   sectionsList = [],
   teachersList = [],
   subjectsList = [],
+  masterRoutine = {}, 
 }) => {
   const { handleSubmit, setValue, reset, control } = useForm();
   const [isEditMode, setIsEditMode] = useState(false);
@@ -57,46 +58,121 @@ const CreateMasterRoutine = ({
 
   useEffect(() => {
     if (selectedRoutineData && selectedRoutineData.subject_id) {
-      setValue("section_id", selectedRoutineData.section_id);
       setValue("subject_id", selectedRoutineData.subject_id);
+    }
+    if (selectedRoutineData && selectedRoutineData.teacher_id) {
       setValue("teacher_id", selectedRoutineData.teacher_id);
+    }
+    if (selectedRoutineData && selectedRoutineData.section_id) {
+      setValue("section_id", selectedRoutineData.section_id);
     }
   }, [selectedRoutineData, setValue]);
 
   const onSubmit = (data) => {
+
+    const {
+      grade_id,
+      day_id,
+      period_id
+    } = selectedData;
+
+    const {
+      section_id,
+      teacher_id,
+      subject_id
+    } = data;
+
+    // Get all routines for the selected day + period
+    const routinesForDay = Object.values(masterRoutine).flat();
+
+    /** -------------------------
+     *  1️⃣ RULE 1:
+     *  Prevent assigning same teacher in multiple classes for same period
+     ---------------------------**/
+    const conflictSamePeriod = routinesForDay.find(
+      r =>
+        r.teacher_id === teacher_id &&
+        r.period_id === period_id &&
+        r.day_id === day_id &&
+        r.grade_id !== grade_id
+    );
+
+    if (conflictSamePeriod) {
+      setShowErrorMessage("Teacher is already assigned to another class in this period.");
+      setShowAlert("error");
+      return;
+    }
+
+    /** -------------------------
+     *  2️⃣ RULE 2:
+     *  Teacher can be assigned more than 5 times, but show warning after 5
+     ---------------------------**/
+    const teacherAssignmentsToday = routinesForDay.filter(
+      r => r.teacher_id === teacher_id && r.day_id === day_id
+    ).length;
+
+    if (teacherAssignmentsToday >= 5) {
+      setShowErrorMessage("Warning: Teacher has been assigned more than 5 times today.");
+      setShowAlert("error");
+      // not returning → allow submission
+    }
+
+    /** -------------------------
+     *  3️⃣ RULE 3:
+     *  Same class + different section allowed, BUT subject must be same
+     ---------------------------**/
+    const sameClassConflict = routinesForDay.find(
+      r =>
+        r.teacher_id === teacher_id &&
+        r.grade_id === grade_id &&
+        r.section_id !== section_id &&
+        r.period_id === period_id &&
+        r.day_id === day_id &&
+        r.subject_id !== subject_id
+    );
+
+    if (sameClassConflict) {
+      setShowErrorMessage("Subject mismatch! Same class with multiple sections must have same subject.");
+      setShowAlert("error");
+      return;
+    }
+
+    /** -------------------------
+     *  4️⃣ RULE 4:
+     *  If period is break, skip validation
+     ---------------------------**/
+    if (selectedData.period_id === "Break") {
+      // skip all validations or just return
+      return;
+    }
+
+    // 👇 existing API payload
     const payload = {
-      period_id: selectedData.period_id,
-      grade_id: selectedData.grade_id,
-      section_id: data.section_id,
-      teacher_id: data.teacher_id,
-      subject_id: data.subject_id,
-      day_id: selectedData.day_id,
+      period_id,
+      grade_id,
+      section_id,
+      teacher_id,
+      subject_id,
+      day_id,
     };
 
     createMasterRoutine(payload)
       .then((res) => {
         if (res?.data?.status === "success") {
           setShowAlert("success");
-          let successMsg = `The routine ${isEditMode ? "updation" : "creation"} succeeded .`;
-          setShowErrorMessage(successMsg);
+          setShowErrorMessage(`Routine ${isEditMode ? "updated" : "created"} successfully.`);
         } else {
-          setShowErrorMessage(res?.data?.message);
           setShowAlert("error");
+          setShowErrorMessage(res?.data?.message);
         }
+
         setTimeout(() => {
           handleClose(true);
-          setTimeout(() => {
-            setShowAlert("");
-          }, 2000);
-        }, 1000);
-      })
-      .catch((err) => {
-        setShowAlert("error");
-        setTimeout(() => {
           setShowAlert("");
-        }, 3000);
+        }, 1200);
       });
   };
+
 
   return (
     <React.Fragment>

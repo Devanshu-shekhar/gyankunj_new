@@ -12,6 +12,8 @@ import {
     CircularProgress,
 } from "@mui/material";
 import { fetchEventImages, fetchEventsMetadata, saveEventImages } from "../../../ApiClient";
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
 
 const EventGalleryPage = () => {
     const [events, setEvents] = useState([]);
@@ -23,6 +25,12 @@ const EventGalleryPage = () => {
         event_name: "",
         image_list: [],
     });
+    const [open, setOpen] = useState(false);
+    const [photoIndex, setPhotoIndex] = useState(0);
+
+    const slides = images.map((img) => ({
+        src: `data:${img.mime_type};base64,${img.data}`,
+    }));
 
     useEffect(() => {
         const stored = localStorage.getItem("UserData");
@@ -111,57 +119,57 @@ const EventGalleryPage = () => {
             {/* ========== Add New Event Section ========== */}
             {(userData.role === "PRINCIPAL" || userData.role === "ADMIN") && (
                 <Box
-                component="form"
-                onSubmit={handleSaveEvent}
-                sx={{
-                    p: 3,
-                    boxShadow: 2,
-                    borderRadius: 2,
-                    backgroundColor: "#fff",
-                    marginBottom: 4,
-                }}
-            >
-                <Typography variant="h6" fontWeight="600" gutterBottom>
-                    Add New Event
-                </Typography>
-
-                <TextField
-                    fullWidth
-                    label="Event Name"
-                    variant="outlined"
-                    value={newEvent.event_name}
-                    onChange={(e) =>
-                        setNewEvent({ ...newEvent, event_name: e.target.value })
-                    }
-                    sx={{ mb: 2 }}
-                />
-
-                <Button variant="outlined" component="label" sx={{ mb: 2 }}>
-                    Upload Images
-                    <input type="file" hidden multiple accept="image/*" onChange={handleImageUpload} />
-                </Button>
-
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
-                    {newEvent.image_list.map((img, i) => (
-                        <Card key={i} sx={{ width: 100, height: 100 }}>
-                            <CardMedia
-                                component="img"
-                                image={`data:${img.mime_type};base64,${img.data}`}
-                                alt={img.file_name}
-                            />
-                        </Card>
-                    ))}
-                </Box>
-
-                <Button
-                    type="submit"
-                    variant="contained"
-                    color="primary"
-                    disabled={loading}
+                    component="form"
+                    onSubmit={handleSaveEvent}
+                    sx={{
+                        p: 3,
+                        boxShadow: 2,
+                        borderRadius: 2,
+                        backgroundColor: "#fff",
+                        marginBottom: 4,
+                    }}
                 >
-                    {loading ? "Saving..." : "Save Event"}
-                </Button>
-            </Box>
+                    <Typography variant="h6" fontWeight="600" gutterBottom>
+                        Add New Event
+                    </Typography>
+
+                    <TextField
+                        fullWidth
+                        label="Event Name"
+                        variant="outlined"
+                        value={newEvent.event_name}
+                        onChange={(e) =>
+                            setNewEvent({ ...newEvent, event_name: e.target.value })
+                        }
+                        sx={{ mb: 2 }}
+                    />
+
+                    <Button variant="outlined" component="label" sx={{ mb: 2 }}>
+                        Upload Images
+                        <input type="file" hidden multiple accept="image/*" onChange={handleImageUpload} />
+                    </Button>
+
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
+                        {newEvent.image_list.map((img, i) => (
+                            <Card key={i} sx={{ width: 100, height: 100 }}>
+                                <CardMedia
+                                    component="img"
+                                    image={`data:${img.mime_type};base64,${img.data}`}
+                                    alt={img.file_name}
+                                />
+                            </Card>
+                        ))}
+                    </Box>
+
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        disabled={loading}
+                    >
+                        {loading ? "Saving..." : "Save Event"}
+                    </Button>
+                </Box>
             )}
 
             <Typography variant="h5" fontWeight="bold" gutterBottom>
@@ -177,13 +185,14 @@ const EventGalleryPage = () => {
                     scrollButtons="auto"
                     aria-label="event tabs"
                 >
-                    {events.map((event) => (
+                    {events.map((event, index) => (
                         <Tab
-                            key={event.event_id}
+                            key={index}
                             label={event.event_name}
                             value={event.event_id}
                         />
                     ))}
+
                 </Tabs>
             </Box>
 
@@ -203,8 +212,13 @@ const EventGalleryPage = () => {
                                         height="200"
                                         image={`data:${img.mime_type};base64,${img.data}`}
                                         alt={img.file_name}
-                                        sx={{ borderRadius: 2 }}
+                                        sx={{ borderRadius: 2, cursor: "pointer" }}
+                                        onClick={() => {
+                                            setPhotoIndex(i);
+                                            setOpen(true);
+                                        }}
                                     />
+
                                 </Card>
                             </Grid>
                         ))}
@@ -215,6 +229,15 @@ const EventGalleryPage = () => {
                     </Typography>
                 )}
             </Box>
+
+            <Lightbox
+                open={open}
+                close={() => setOpen(false)}
+                slides={slides}
+                index={photoIndex}
+                onIndexChange={setPhotoIndex}
+            />
+
         </Box>
     );
 };
