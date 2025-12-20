@@ -610,6 +610,14 @@ const saveEventImages = (payload) => {
   return apiInstance.post(`/save_event_data`, payload);
 }
 
+const viewAllStudentPerformanceReport = () => {
+  return apiInstance.get(`/view_all_student_performance_report`);
+}
+
+const viewStudentPerformanceReport = (user_id) => {
+  return apiInstance.get(`/view_student_performance_report?user_id=${user_id}`);
+}
+
 export {
   //loginUser,
   evaluteAssignment,
@@ -741,4 +749,6 @@ export {
   fetchEventsMetadata,
   fetchEventImages,
   saveEventImages,
+  viewAllStudentPerformanceReport,
+  viewStudentPerformanceReport
 };

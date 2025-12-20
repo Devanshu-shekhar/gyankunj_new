@@ -17,13 +17,12 @@ import BackButton from "../../SharedComponents/BackButton";
     const userInfo = JSON.parse(localStorage.getItem("UserData"));
     const [assignmentData, setAssignmentData] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [studentFilter, setStudentFilter] = useState("");
+    const [studentFilter, setStudentFilter] = useState(() => (userInfo?.student_info && userInfo.student_info.length > 0) ? userInfo.student_info[0].student_id : "" );
 
-    useEffect(() => {
-      if (userInfo.student_info && userInfo.student_info.length > 0) {
-        setStudentFilter(userInfo.student_info[0].student_id);
-      }
-    }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // initial student set via useState default to avoid effect dependency warnings
+    // (userInfo is static from localStorage)
+
 
     useEffect(() => {
       if (studentFilter) {
