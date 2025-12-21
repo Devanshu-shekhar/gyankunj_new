@@ -56,10 +56,10 @@ const EvaluteAssignmentReport = () => {
           correct_answer: evaluationData.teacher_response[key].correct_answer,
           marks_received:
             value.type === "subjective"
-              ? marksForWriteAnswer[key]?.toString()
-              : value.is_answer_correct
-              ? value.marks
-              : 0,
+            ? marksForWriteAnswer?.[key]?.toString() || 0
+            : value.is_answer_correct
+            ? value.marks
+            : 0,
         };
 
         totalTimeTaken += value.time_taken;
