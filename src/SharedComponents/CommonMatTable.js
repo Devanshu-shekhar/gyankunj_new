@@ -12,7 +12,9 @@ const CommonMatTable = ({
   renderTopToolbar,
   isLoading,
   renderDetailPanel,
-  enableExpanding = false
+  enableExpanding = false,
+  onRowClick,
+  selectedRowId = null,
 }) => {
   const [primaryColor, setPrimaryColor] = React.useState("#1976d2"); // Default to MUI blue
   useEffect(() => {
@@ -73,14 +75,27 @@ const CommonMatTable = ({
         return `rgb(${r}, ${g}, ${b})`;
       };
 
+      const rowId = row.original?.id ?? `${row.original?.grade_id ?? row.original?.grade}-${row.original?.section_id ?? row.original?.section}`;
+      const isSelected = selectedRowId != null && String(rowId) === String(selectedRowId);
+
       return {
         sx: {
-          backgroundColor: row.index % 2 === 1 ? "#ffffff" : getRandomLightColor(),
+          cursor: onRowClick ? "pointer" : "auto",
+          backgroundColor: isSelected
+            ? "#dcedc8" // selected light green
+            : row.index % 2 === 1
+            ? "#ffffff"
+            : getRandomLightColor(),
+          boxShadow: isSelected ? "inset 0 0 0 2px rgba(76,175,80,0.12)" : undefined,
           "&:hover": {
-            backgroundColor: "#e3f2fd",
+            backgroundColor: isSelected ? "#c5e1a5" : "#e3f2fd",
             transition: "background-color 0.2s ease-in-out",
           },
         },
+        onClick: () => {
+          if (onRowClick) onRowClick(row.original);
+        },
+        "aria-selected": isSelected,
       };
     },
 

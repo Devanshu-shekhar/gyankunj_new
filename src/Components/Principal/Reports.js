@@ -1,19 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { viewAllStudentPerformanceReport, fetchMetadataInfo, viewStudentPerformanceReport, fetchAllStudentsMetadata } from "../../ApiClient";
+import { viewAllStudentPerformanceReport, fetchMetadataInfo, viewStudentPerformanceReport, fetchAllStudentsMetadata, getAllStudentsData } from "../../ApiClient";
 import CommonMatTable from "../../SharedComponents/CommonMatTable";
 import AlertMessage from "../AlertMessage";
-import { Box, FormControl, InputLabel, MenuItem, Select, CircularProgress } from "@mui/material";
+import { Box, FormControl, InputLabel, MenuItem, Select, CircularProgress, Radio, Typography } from "@mui/material";
 
 const ReportSection = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [reports, setReports] = useState([]);
   const [error, setError] = useState(null);
-
-  // Student selector & performance state
-  const [students, setStudents] = useState([]);
-  const [studentFilter, setStudentFilter] = useState("");
-  const [studentPerf, setStudentPerf] = useState(null);
-  const [isStudentLoading, setIsStudentLoading] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -88,27 +82,40 @@ const ReportSection = () => {
     };
   }, []);
 
-  // Fetch list of students (pass empty grade/section to get all students)
+  // Student selector & performance state
+  const [students, setStudents] = useState([]);
+  const [studentFilter, setStudentFilter] = useState("");
+  const [studentPerf, setStudentPerf] = useState(null);
+  const [isStudentLoading, setIsStudentLoading] = useState(false);
+  const [selectedClass, setSelectedClass] = useState(null);
+
+  // Fetch students for either all classes (default) or selected class (grade/section)
   useEffect(() => {
     let mounted = true;
-    const fetchStudents = async () => {
+    const fetchStudents = async (grade = "", section = "") => {
       try {
-        const res = await fetchAllStudentsMetadata("", "");
+        const res = await getAllStudentsData(grade, section);
         if (!mounted) return;
-        const list = res?.data?.students_data || [];
+        const list = res?.data?.student_details || [];
         setStudents(list);
-        if (list.length > 0) setStudentFilter((prev) => prev || list[0].student_id);
+        setStudentFilter((prev) => {
+          // keep currently selected student if still present, otherwise pick first or empty
+          if (prev && list.some((s) => s.student_id === prev)) return prev;
+          return list.length > 0 ? list[0].student_id : "";
+        });
       } catch (err) {
         console.error("Failed to fetch student list:", err);
       }
     };
 
-    fetchStudents();
+    const grade = selectedClass?.gradeId ?? "";
+    const section = selectedClass?.sectionId ?? "";
+    fetchStudents(grade, section);
 
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [selectedClass]);
 
   // Fetch selected student's performance
   useEffect(() => {
@@ -143,12 +150,33 @@ const ReportSection = () => {
 
   const columns = useMemo(
     () => [
+      {
+        id: "select",
+        header: "",
+        size: 1,
+        Cell: ({ row }) => {
+          const gradeId = row.original.grade_id ?? row.original.grade ?? "";
+          const sectionId = row.original.section_id ?? row.original.section ?? "";
+          const rowId = row.original.id ?? `${gradeId}-${sectionId}`;
+          return (
+            <Radio
+              checked={String(selectedClass?.id ?? "") === String(rowId)}
+              onChange={() => {
+                setSelectedClass({ gradeId, sectionId, id: rowId });
+              }}
+              value={rowId}
+              onClick={(e) => e.stopPropagation()}
+              size="small"
+            />
+          );
+        },
+      },
       { accessorKey: "grade_name", header: "Grade" },
       { accessorKey: "section_name", header: "Section" },
       { accessorKey: "assignment_passed_count", header: "Assignment Passed Count" },
       { accessorKey: "assignment_failed_count", header: "Assignment Failed Count" },
     ],
-    []
+    [selectedClass]
   );
 
   // format seconds into human readable duration
@@ -186,7 +214,19 @@ const ReportSection = () => {
     <div className="reportSection">
       {error && <AlertMessage open={true} alertFor="error" message={error} />}
 
-      <CommonMatTable columns={columns} isLoading={isLoading} data={reports || []} renderTopToolbar={renderTopToolbar} />
+      <CommonMatTable
+        columns={columns}
+        isLoading={isLoading}
+        data={reports || []}
+        renderTopToolbar={renderTopToolbar}
+        onRowClick={(row) => {
+          const gradeId = row.grade_id ?? row.grade ?? "";
+          const sectionId = row.section_id ?? row.section ?? "";
+          const rowId = row.id ?? `${gradeId}-${sectionId}`;
+          setSelectedClass({ gradeId, sectionId, id: rowId });
+        }}
+        selectedRowId={selectedClass?.id ?? null}
+      />
 
       {!isLoading && (!reports || reports.length === 0) && (
         <div style={{ textAlign: "center", marginTop: 16, color: "#666" }}>No reports available.</div>
@@ -200,6 +240,11 @@ const ReportSection = () => {
 
       {/* Student-specific performance section */}
       <div style={{ marginTop: 24 }}>
+        {!selectedClass && (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            Please select a class from the Class Performance Reports above to filter students and view student performance.
+          </Typography>
+        )}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, marginBottom: 2 }}>
           <FormControl fullWidth sx={{ width: "calc(100%/3)" }}>
             <InputLabel>Student</InputLabel>
@@ -207,6 +252,7 @@ const ReportSection = () => {
               label="Student"
               value={studentFilter || ""}
               onChange={(e) => setStudentFilter(e.target.value)}
+              disabled={!selectedClass}
             >
               {students.map((s) => (
                 <MenuItem key={s.student_id} value={s.student_id}>
@@ -240,7 +286,9 @@ const ReportSection = () => {
         />
 
         {!isStudentLoading && !studentPerf && (
-          <div style={{ textAlign: "center", marginTop: 12, color: "#666" }}>Select a student to view performance.</div>
+          <div style={{ textAlign: "center", marginTop: 12, color: "#666" }}>
+            {selectedClass ? "Select a student to view performance." : "Select a class to view student performance."}
+          </div>
         )}
       </div>
     </div>
