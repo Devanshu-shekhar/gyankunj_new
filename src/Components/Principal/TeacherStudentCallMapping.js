@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import {
   Box,
   Button,
@@ -45,6 +45,7 @@ const CreateTeacherClassMappingDialog = ({ open, onClose, onSuccess, gradeData, 
   const { fields, append, remove } = useFieldArray({ control, name: "teacher_mapper_data" });
   const [sectionsByRow, setSectionsByRow] = useState({});
   const [isTeacherFormValid, setIsTeacherFormValid] = useState(false);
+  const teacherAppendRef = useRef(0);
 
   useEffect(() => {
     if (!open) return;
@@ -172,7 +173,10 @@ const CreateTeacherClassMappingDialog = ({ open, onClose, onSuccess, gradeData, 
               <Grid item xs={6} md={2}>
                 <Box sx={{ display: "flex", gap: 1 }}>
                   {index === fields.length - 1 && (
-                    <IconButton color="primary" size="small" onClick={() => {
+                    <IconButton type="button" color="primary" size="small" onClick={() => {
+                      const now = Date.now();
+                      if (teacherAppendRef.current && now - teacherAppendRef.current < 300) return;
+                      teacherAppendRef.current = now;
                       append({ teacher_id: "", grade_id: "", section_id: "", is_class_teacher: false });
                       // ensure sections cache for new row is empty
                       setSectionsByRow((prev) => ({ ...prev, [fields.length]: [] }));
@@ -180,7 +184,7 @@ const CreateTeacherClassMappingDialog = ({ open, onClose, onSuccess, gradeData, 
                       <AddBoxIcon />
                     </IconButton>
                   )}
-                  <IconButton color="error" size="small" onClick={() => remove(index)} disabled={fields.length === 1}>
+                  <IconButton type="button" color="error" size="small" onClick={() => remove(index)} disabled={fields.length === 1}>
                     <RemoveCircleOutlineIcon />
                   </IconButton>
                 </Box>
@@ -206,6 +210,7 @@ const CreateStudentClassMappingDialog = ({ open, onClose, onSuccess, gradeData }
   const { fields, append, remove } = useFieldArray({ control, name: "student_mapper_data" });
   const [studentsByRow, setStudentsByRow] = useState({});
   const [isStudentFormValid, setIsStudentFormValid] = useState(false);
+  const studentAppendRef = useRef(0);
 
   useEffect(() => { if (!open) { reset(); setStudentsByRow({}); } }, [open, reset]);
 
@@ -319,14 +324,17 @@ const CreateStudentClassMappingDialog = ({ open, onClose, onSuccess, gradeData }
               <Grid item xs={12} md={1}>
                 <Box sx={{ display: "flex", gap: 1 }}>
                   {index === fields.length - 1 && (
-                    <IconButton color="primary" size="small" onClick={() => {
+                    <IconButton type="button" color="primary" size="small" onClick={() => {
+                      const now = Date.now();
+                      if (studentAppendRef.current && now - studentAppendRef.current < 300) return;
+                      studentAppendRef.current = now;
                       append({ student_id: "", grade_id: "", section_id: "", roll_no: "" });
                       setStudentsByRow((prev) => ({ ...prev, [fields.length]: [] }));
                     }}>
                       <AddBoxIcon />
                     </IconButton>
                   )}
-                  <IconButton color="error" size="small" onClick={() => remove(index)} disabled={fields.length === 1}>
+                  <IconButton type="button" color="error" size="small" onClick={() => remove(index)} disabled={fields.length === 1}>
                     <RemoveCircleOutlineIcon />
                   </IconButton>
                 </Box>
