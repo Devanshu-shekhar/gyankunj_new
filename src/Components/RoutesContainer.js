@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedWrapper } from "../ProtectedRoute";
+import TeacherStudentCallMapping from "./Principal/TeacherStudentCallMapping";
 const LandingDashboard = lazy(() => import("./LandingDashboard"));
 const PageNotFound = lazy(() => import("./PageNotFound"));
 const PDashboard = lazy(() => import("./Principal/PDashboard"));
@@ -60,6 +61,7 @@ const UserCalendar = lazy(() => import("./UserCalendar"));
 const SchoolConfiguration = lazy(() => import("./Principal/School/SchoolConfiguration"));
 const AdmissionStepperPage = lazy(() => import("./Principal/Admission/AdmissionStepperPage"));
 const EventGalleryPage = lazy(() => import("./Principal/School/EventGalleryPage"));
+const leavesOverview = lazy(() => import("./Principal/TeacherStudentLeaveApplicationsList"));
 
 // Define routes for different user roles
 const roleRoutes = {
@@ -128,6 +130,14 @@ export default function RoutesContainer({ userData, mainContainerRef }) {
             <Route
               path="/principalDashboard/notifications"
               element={<ProtectedWrapper Component={APNotifications} />}
+            />
+            <Route
+              path="/principalDashboard/leavesOverview"
+              element={<ProtectedWrapper Component={leavesOverview} />}
+            />
+            <Route
+              path="/principalDashboard/classMapping"
+              element={<ProtectedWrapper Component={TeacherStudentCallMapping} />}
             />
             {userData.role === "ADMIN" && (
               <>
