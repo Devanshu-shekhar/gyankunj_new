@@ -21,7 +21,7 @@ import dayjs from "dayjs";
 import { Controller, useForm } from "react-hook-form";
 
 const TeacherStudentLeaveApplicationsList = (props) => {
-  const { handleSubmit, setValue, reset, control } = useForm();
+  const { handleSubmit, control } = useForm();
   const userInfo = JSON.parse(localStorage.getItem("UserData"));
   const [teacherLeaves, setTeacherLeaves] = useState([]);
   const [studentLeaves, setStudentLeaves] = useState([]);
@@ -144,113 +144,6 @@ const TeacherStudentLeaveApplicationsList = (props) => {
           setSelectedPeriod(firstDate && firstPeriod ? `${firstDate}/${firstPeriod}` : "");
         }
       }
-      // else {
-      //   const substituteTeachers = {
-      //     "2025-02-25": {
-      //       "day_id": 2,
-      //       "grade_id": 3,
-      //       "section_id": 1,
-      //       "grade_name": "One",
-      //       "section_name": "A",
-      //       "teacher_list": [
-      //         {
-      //           "period_id": 10,
-      //           "available_teachers": [
-      //             {
-      //               "teacher_id": "sfs/24/01/2024",
-      //               "teacher_name": "Pragya bharti"
-      //             },
-      //             {
-      //               "teacher_id": "sfs/25/01/2024",
-      //               "teacher_name": "Puja kumari"
-      //             }
-      //           ]
-      //         }
-      //       ]
-      //     },
-      //     "2025-02-26": {
-      //       "day_id": 3,
-      //       "grade_id": 1,
-      //       "section_id": 3,
-      //       "grade_name": "Nursery",
-      //       "section_name": "C",
-      //       "teacher_list": [
-      //         {
-      //           "period_id": 9,
-      //           "available_teachers": [
-      //             {
-      //               "teacher_id": "sfs/22/01/2024",
-      //               "teacher_name": "Anup Srivastav"
-      //             }
-      //           ]
-      //         }
-      //       ]
-      //     },
-      //     "2025-03-02": {
-      //       "day_id": 7,
-      //       "grade_id": 12,
-      //       "section_id": 2,
-      //       "grade_name": "Ten",
-      //       "section_name": "B",
-      //       "teacher_list": [
-      //         {
-      //           "period_id": 9,
-      //           "available_teachers": [
-      //             {
-      //               "teacher_id": "sfs/20/01/2024",
-      //               "teacher_name": "RANI KUMARI3"
-      //             },
-      //             {
-      //               "teacher_id": "sfs/23/01/2024",
-      //               "teacher_name": "Aakash shrama"
-      //             },
-      //             {
-      //               "teacher_id": "sfs/27/01/2024",
-      //               "teacher_name": "Chanchal sen "
-      //             },
-      //             {
-      //               "teacher_id": "sfs/28/01/2024",
-      //               "teacher_name": "Miraya shahay"
-      //             }
-      //           ]
-      //         },
-      //         {
-      //           "period_id": 12,
-      //           "available_teachers": [
-      //             {
-      //               "teacher_id": "sfs/20/01/2024",
-      //               "teacher_name": "RANI KUMARI3"
-      //             },
-      //             {
-      //               "teacher_id": "sfs/23/01/2024",
-      //               "teacher_name": "Aakash shrama"
-      //             },
-      //             {
-      //               "teacher_id": "sfs/24/01/2024",
-      //               "teacher_name": "Pragya bharti"
-      //             },
-      //             {
-      //               "teacher_id": "sfs/25/01/2024",
-      //               "teacher_name": "Puja kumari"
-      //             },
-      //             {
-      //               "teacher_id": "sfs/27/01/2024",
-      //               "teacher_name": "Chanchal sen "
-      //             },
-      //             {
-      //               "teacher_id": "sfs/28/01/2024",
-      //               "teacher_name": "Miraya shahay"
-      //             }
-      //           ]
-      //         }
-      //       ]
-      //     }
-      //   }
-      //   const firstDate = Object.keys(substituteTeachers)[0];
-      //   const firstPeriod = substituteTeachers[firstDate]?.teacher_list?.[0]?.period_id;
-      //   setSelectedPeriod(firstDate && firstPeriod ? `${firstDate}/${firstPeriod}` : "");
-      //   setSubstituteTeachers(substituteTeachers);
-      // }
 
       setAssignTeacherDialog({ open: true, leave });
     }

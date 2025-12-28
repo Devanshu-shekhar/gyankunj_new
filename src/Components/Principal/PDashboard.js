@@ -250,11 +250,11 @@ const PDashboard = () => {
             </Grid>
           </div>
           <PLogBook />
-          { userInfo.role === "PRINCIPAL" && 
+          {/* { userInfo.role === "PRINCIPAL" && 
             <div>
                <TeacherStudentLeaveApplicationsList />
             </div>
-          }
+          } */}
         </Grid>
         <Grid item xs={12} md={3}>
           <Box className="border-bottom text-center pb-3 mb-3">

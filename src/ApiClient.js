@@ -618,6 +618,22 @@ const viewStudentPerformanceReport = (user_id) => {
   return apiInstance.get(`/view_student_performance_report?user_id=${user_id}`);
 }
 
+const createTeacherClassMapping = (payload) => {
+  return apiInstance.post(`/create_teacher_mapping`, payload);
+};
+
+const getTeacherClassMappings = () => {
+  return apiInstance.get(`/fetch_teacher_class_mappings`);
+}
+
+const createStudentClassMapping = (payload) => {
+  return apiInstance.post(`/create_student_mapping`, payload);
+};
+
+const getStudentClassMappings = () => {
+  return apiInstance.get(`/fetch_student_class_mappings`);
+}
+
 export {
   //loginUser,
   evaluteAssignment,
@@ -750,5 +766,9 @@ export {
   fetchEventImages,
   saveEventImages,
   viewAllStudentPerformanceReport,
-  viewStudentPerformanceReport
+  viewStudentPerformanceReport,
+  createTeacherClassMapping,
+  getTeacherClassMappings,
+  createStudentClassMapping,
+  getStudentClassMappings
 };

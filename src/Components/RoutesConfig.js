@@ -121,6 +121,18 @@ export const routesConfig = {
       route: "/principalDashboard/attendanceOverview",
     },
     {
+      code: "leavesOverview",
+      title: "Leaves",
+      icon: <AssignmentOutlinedIcon />,
+      route: "/principalDashboard/leavesOverview",
+    },
+    {
+      code: "classMapping",
+      title: "Class Mapping",
+      icon: <Settings />,
+      route: "/principalDashboard/classMapping",
+    },
+    {
       code: "reports",
       title: "Report",
       icon: <AssignmentOutlinedIcon />,
