@@ -38,7 +38,7 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialog-paper": { maxWidth: "90%", width: "75%" },
 }));
 
-const CreateTeacherClassMappingDialog = ({ open, onClose, onSuccess, gradeData, teacherList }) => {
+const CreateTeacherClassMappingDialog = ({ open, onClose, onSuccess, onError, gradeData, teacherList }) => {
   const { control, handleSubmit, reset, getValues, setValue, watch } = useForm({
     defaultValues: { teacher_mapper_data: [{ teacher_id: "", grade_id: "", section_id: "", is_class_teacher: false }] },
   });
@@ -68,7 +68,8 @@ const CreateTeacherClassMappingDialog = ({ open, onClose, onSuccess, gradeData, 
     // ensure at least one valid mapping row
     const hasValid = Array.isArray(data.teacher_mapper_data) && data.teacher_mapper_data.some(r => r.teacher_id && r.grade_id && r.section_id);
     if (!hasValid) {
-      showAlertMessage({ open: true, alertFor: "error", message: "Please add at least one valid teacher mapping (Teacher, Grade, Section)." });
+      if (onError) onError("Please add at least one valid teacher mapping (Teacher, Grade, Section).");
+      else showAlertMessage({ open: true, alertFor: "error", message: "Please add at least one valid teacher mapping (Teacher, Grade, Section)." });
       return;
     }
 
@@ -78,11 +79,14 @@ const CreateTeacherClassMappingDialog = ({ open, onClose, onSuccess, gradeData, 
         onSuccess && onSuccess();
         onClose(true);
       } else {
-        // show failure via parent
+        const msg = res?.data?.message || "Failed to create teacher mapping";
+        if (onError) onError(msg);
+        else showAlertMessage({ open: true, alertFor: "error", message: msg });
         onClose(false);
       }
     } catch (err) {
       console.error(err);
+      if (onError) onError(err?.message || "Failed to create teacher mapping");
       onClose(false);
     }
   };
@@ -203,7 +207,7 @@ const CreateTeacherClassMappingDialog = ({ open, onClose, onSuccess, gradeData, 
   );
 };
 
-const CreateStudentClassMappingDialog = ({ open, onClose, onSuccess, gradeData }) => {
+const CreateStudentClassMappingDialog = ({ open, onClose, onSuccess, onError, gradeData }) => {
   const { control, handleSubmit, reset, getValues, setValue, watch } = useForm({
     defaultValues: { student_mapper_data: [{ student_id: "", grade_id: "", section_id: "", roll_no: "" }] },
   });
@@ -241,7 +245,8 @@ const CreateStudentClassMappingDialog = ({ open, onClose, onSuccess, gradeData }
   const onSubmit = async (data) => {
     const hasValid = Array.isArray(data.student_mapper_data) && data.student_mapper_data.some(r => r.student_id && r.grade_id && r.section_id);
     if (!hasValid) {
-      showAlertMessage({ open: true, alertFor: "error", message: "Please add at least one valid student mapping (Student, Grade, Section)." });
+      if (onError) onError("Please add at least one valid student mapping (Student, Grade, Section).");
+      else showAlertMessage({ open: true, alertFor: "error", message: "Please add at least one valid student mapping (Student, Grade, Section)." });
       return;
     }
 
@@ -251,10 +256,14 @@ const CreateStudentClassMappingDialog = ({ open, onClose, onSuccess, gradeData }
         onSuccess && onSuccess();
         onClose(true);
       } else {
+        const msg = res?.data?.message || "Failed to create student mapping";
+        if (onError) onError(msg);
+        else showAlertMessage({ open: true, alertFor: "error", message: msg });
         onClose(false);
       }
     } catch (err) {
       console.error(err);
+      if (onError) onError(err?.message || "Failed to create student mapping");
       onClose(false);
     }
   };
@@ -365,6 +374,13 @@ const TeacherStudentCallMapping = () => {
   const [alertConfig, setAlertConfig] = useState(null);
 
   useEffect(() => {
+    // auto-clear alert after 1 second (1000ms)
+    if (!alertConfig) return;
+    const t = setTimeout(() => setAlertConfig(null), 2000);
+    return () => clearTimeout(t);
+  }, [alertConfig]);
+
+  useEffect(() => {
     fetchAll();
     getGradeDetails().then((res) => {
       if (res?.data?.grade_details?.grade_details) setGradeData(res.data.grade_details.grade_details);
@@ -423,24 +439,26 @@ const TeacherStudentCallMapping = () => {
       {alertConfig && showAlertMessage(alertConfig)}
 
       <div className="mt-5">
-        <Box className="d-flex align-items-center justify-content-between mb-2">
-          <h1 style={{ fontSize: 18, marginTop: 10 }}>Teacher Class Mappings</h1>
+        <Box className="d-flex align-items-center justify-content-end mb-2">
           <TeacherToolbarActions />
         </Box>
-        <CommonMatTable columns={teacherColumns} data={teacherMappings} isLoading={loading} renderTopToolbar={() => null} />
+        <CommonMatTable columns={teacherColumns} data={teacherMappings} isLoading={loading} renderTopToolbar={() => (
+            <h1 style={{ fontSize: 18, marginTop: 10 }}>Teacher Class Mappings</h1>
+          )} />
       </div>
 
       <div className="mt-5">
-        <Box className="d-flex align-items-center justify-content-between mb-2">
-          <h1 style={{ fontSize: 18, marginTop: 10 }}>Student Class Mappings</h1>
+        <Box className="d-flex align-items-center justify-content-end mb-2">
           <StudentToolbarActions />
         </Box>
-        <CommonMatTable columns={studentColumns} data={studentMappings} isLoading={loading} renderTopToolbar={() => null} />
+        <CommonMatTable columns={studentColumns} data={studentMappings} isLoading={loading} renderTopToolbar={() => (
+            <h1 style={{ fontSize: 18, marginTop: 10 }}>Student Class Mappings</h1>
+          )} />
       </div>
 
-      <CreateTeacherClassMappingDialog open={isTeacherModalOpen} onClose={(didChange) => { setIsTeacherModalOpen(false); if (didChange) setRefreshFlag((p) => !p); }} onSuccess={() => { setAlertConfig({ open: true, alertFor: "success", message: "Teacher mapping created" }); }} gradeData={gradeData} teacherList={teacherList} />
+      <CreateTeacherClassMappingDialog open={isTeacherModalOpen} onClose={(didChange) => { setIsTeacherModalOpen(false); if (didChange) setRefreshFlag((p) => !p); }} onSuccess={() => { setAlertConfig({ open: true, alertFor: "success", message: "Teacher mapping created" }); }} onError={(msg) => setAlertConfig({ open: true, alertFor: "error", message: msg })} gradeData={gradeData} teacherList={teacherList} />
 
-      <CreateStudentClassMappingDialog open={isStudentModalOpen} onClose={(didChange) => { setIsStudentModalOpen(false); if (didChange) setRefreshFlag((p) => !p); }} onSuccess={() => { setAlertConfig({ open: true, alertFor: "success", message: "Student mapping created" }); }} gradeData={gradeData} />
+      <CreateStudentClassMappingDialog open={isStudentModalOpen} onClose={(didChange) => { setIsStudentModalOpen(false); if (didChange) setRefreshFlag((p) => !p); }} onSuccess={() => { setAlertConfig({ open: true, alertFor: "success", message: "Student mapping created" }); }} onError={(msg) => setAlertConfig({ open: true, alertFor: "error", message: msg })} gradeData={gradeData} />
     </>
   );
 };
