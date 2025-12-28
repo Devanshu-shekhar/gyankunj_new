@@ -38,6 +38,27 @@ const BootstrapDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiDialog-paper": { maxWidth: "90%", width: "75%" },
 }));
 
+// Default sample data (used when API calls fail) 🔧
+const DEFAULT_GRADE_DATA = [
+  { grade_id: "1", grade: "Grade 1", section_list: [{ section_id: "A", section_name: "A" }, { section_id: "B", section_name: "B" }] },
+  { grade_id: "2", grade: "Grade 2", section_list: [{ section_id: "A", section_name: "A" }] },
+];
+
+const DEFAULT_TEACHER_LIST = [
+  { teacher_id: "T1", teacher_name: "John Doe" },
+  { teacher_id: "T2", teacher_name: "Jane Smith" },
+];
+
+const DEFAULT_TEACHER_MAPPINGS = [
+  { teacher_id: "T1", grade_id: "1", section_id: "A", is_class_teacher: true },
+  { teacher_id: "T2", grade_id: "1", section_id: "B", is_class_teacher: false },
+];
+
+const DEFAULT_STUDENT_MAPPINGS = [
+  { student_id: "S1", student_name: "Alice", grade_id: "1", section_id: "A", roll_no: "1" },
+  { student_id: "S2", student_name: "Bob", grade_id: "1", section_id: "B", roll_no: "2" },
+];
+
 const CreateTeacherClassMappingDialog = ({ open, onClose, onSuccess, onError, gradeData, teacherList }) => {
   const { control, handleSubmit, reset, getValues, setValue, watch } = useForm({
     defaultValues: { teacher_mapper_data: [{ teacher_id: "", grade_id: "", section_id: "", is_class_teacher: false }] },
@@ -384,25 +405,46 @@ const TeacherStudentCallMapping = () => {
     fetchAll();
     getGradeDetails().then((res) => {
       if (res?.data?.grade_details?.grade_details) setGradeData(res.data.grade_details.grade_details);
-    }).catch(console.error);
+    }).catch((err) => {
+      console.error(err);
+      setGradeData(DEFAULT_GRADE_DATA);
+      setAlertConfig({ open: true, alertFor: "warning", message: "Using sample grade data due to API error" });
+    });
 
     getTeachersData().then((res) => {
       if (res?.data?.teachers) setTeacherList(res.data.teachers);
-    }).catch(console.error);
+    }).catch((err) => {
+      console.error(err);
+      setTeacherList(DEFAULT_TEACHER_LIST);
+      setAlertConfig({ open: true, alertFor: "warning", message: "Using sample teacher list due to API error" });
+    });
   }, []);
 
   useEffect(() => { fetchAll(); }, [refreshFlag]);
 
   const fetchAll = async () => {
     setLoading(true);
+
+    // fetch teacher mappings (with fallback)
     try {
       const tRes = await getTeacherClassMappings();
-      const sRes = await getStudentClassMappings();
-      setTeacherMappings(tRes?.data?.teacher_mapper_data || []);
-      setStudentMappings(sRes?.data?.student_mapper_data || []);
+      setTeacherMappings(tRes?.data?.teacher_mapper_data || DEFAULT_TEACHER_MAPPINGS);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to fetch teacher mappings:", err);
+      setTeacherMappings(DEFAULT_TEACHER_MAPPINGS);
+      setAlertConfig({ open: true, alertFor: "warning", message: "Using sample teacher mappings due to API error" });
     }
+
+    // fetch student mappings (with fallback)
+    try {
+      const sRes = await getStudentClassMappings();
+      setStudentMappings(sRes?.data?.student_mapper_data || DEFAULT_STUDENT_MAPPINGS);
+    } catch (err) {
+      console.error("Failed to fetch student mappings:", err);
+      setStudentMappings(DEFAULT_STUDENT_MAPPINGS);
+      setAlertConfig({ open: true, alertFor: "warning", message: "Using sample student mappings due to API error" });
+    }
+
     setLoading(false);
   };
 
