@@ -164,7 +164,7 @@ const CustomMasterRoutine = () => {
           value={dayFilter}
           onChange={(e) => setDayFilter(e.target.value)}
         >
-          {daysData.map((item) => (
+          {(daysData || []).map((item) => (
             <MenuItem key={item.day_id} value={item.day_id}>
               {item.day_name}
             </MenuItem>
