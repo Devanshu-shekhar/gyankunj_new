@@ -4,7 +4,7 @@ import axios from "axios";
 //     return apiInstance.post(`/login`, data)
 // }
 const apiInstance = axios.create({
-  baseURL: "http://3.6.167.80:5005",
+  baseURL: "http://13.204.216.231:5005",
 });
 
 async function handleAPI(recdConfig) {
