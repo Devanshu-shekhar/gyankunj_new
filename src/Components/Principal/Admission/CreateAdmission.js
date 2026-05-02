@@ -116,21 +116,75 @@ const CreateAdmission = ({
   const [isEmiApplicable, setIsEmiApplicable] = useState(true);
   const isEditMode = Object.keys(selectedData).length > 0;
 
+  // Helper function to normalize form data from API response
+  const normalizeFormData = (data) => {
+    if (!data) return null;
+
+    const normalized = { ...data };
+
+    // Parse languages_known from string format "{6,7}" to array [6, 7]
+    if (normalized.languages_known) {
+      if (typeof normalized.languages_known === "string") {
+        // Handle string format like "{6,7}" or "6,7"
+        const cleaned = normalized.languages_known.replace(/[{}]/g, "").trim();
+        if (cleaned) {
+          normalized.languages_known = cleaned.split(",").map((val) => {
+            const num = parseInt(val.trim(), 10);
+            return isNaN(num) ? val.trim() : num;
+          });
+        } else {
+          normalized.languages_known = [];
+        }
+      } else if (!Array.isArray(normalized.languages_known)) {
+        normalized.languages_known = [];
+      }
+    } else {
+      normalized.languages_known = [];
+    }
+
+    // Convert string boolean values to actual booleans
+    const booleanFields = ["any_known_illness", "school_transport_required"];
+    booleanFields.forEach((field) => {
+      if (field in normalized) {
+        const value = normalized[field];
+        if (typeof value === "string") {
+          normalized[field] = value.toLowerCase() === "true";
+        } else if (value === null || value === undefined) {
+          normalized[field] = false;
+        }
+      }
+    });
+
+    // Ensure numeric fields are numbers
+    const numericStringShouldBeFields = ["father_aadhar_number", "father_phone", "mother_phone"];
+    numericStringShouldBeFields.forEach((field) => {
+      if (field in normalized && normalized[field]) {
+        if (typeof normalized[field] === "string") {
+          const num = parseInt(normalized[field], 10);
+          normalized[field] = isNaN(num) ? normalized[field] : num;
+        }
+      }
+    });
+
+    return normalized;
+  };
+
   useEffect(() => {
     if (Object.keys(selectedData).length > 0) {
+      const normalizedData = normalizeFormData(selectedData);
       reset({
-        ...selectedData,
-        date_of_birth: selectedData.date_of_birth
-          ? dayjs(selectedData.date_of_birth)
+        ...normalizedData,
+        date_of_birth: normalizedData.date_of_birth
+          ? dayjs(normalizedData.date_of_birth)
           : null,
-        date_of_joining: selectedData.date_of_joining
-          ? dayjs(selectedData.date_of_joining)
+        date_of_joining: normalizedData.date_of_joining
+          ? dayjs(normalizedData.date_of_joining)
           : null,
-        father_dob: selectedData.father_dob
-          ? dayjs(selectedData.father_dob)
+        father_dob: normalizedData.father_dob
+          ? dayjs(normalizedData.father_dob)
           : null,
-        mother_dob: selectedData.mother_dob
-          ? dayjs(selectedData.mother_dob)
+        mother_dob: normalizedData.mother_dob
+          ? dayjs(normalizedData.mother_dob)
           : null,
       });
     } else {
