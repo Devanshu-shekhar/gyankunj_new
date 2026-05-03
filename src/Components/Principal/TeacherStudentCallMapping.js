@@ -14,6 +14,7 @@ import {
   IconButton,
   Grid,
   TextField,
+  Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AddBoxIcon from "@mui/icons-material/AddBox";
@@ -60,7 +61,7 @@ const DEFAULT_STUDENT_MAPPINGS = [
 ];
 
 const CreateTeacherClassMappingDialog = ({ open, onClose, onSuccess, onError, gradeData, teacherList }) => {
-  const { control, handleSubmit, reset, getValues, setValue, watch } = useForm({
+  const { control, handleSubmit, reset, getValues, setValue } = useForm({
     defaultValues: { teacher_mapper_data: [{ teacher_id: "", grade_id: "", section_id: "", is_class_teacher: false }] },
   });
   const { fields, append, remove } = useFieldArray({ control, name: "teacher_mapper_data" });
@@ -115,7 +116,7 @@ const CreateTeacherClassMappingDialog = ({ open, onClose, onSuccess, onError, gr
   return (
     <BootstrapDialog open={open} onClose={() => onClose(false)}>
       <DialogTitle>
-        Create Teacher Class Mapping
+        Teacher Mapping
         <IconButton onClick={() => onClose(false)} sx={{ position: "absolute", right: 8, top: 8 }}>
           <CloseIcon />
         </IconButton>
@@ -229,50 +230,128 @@ const CreateTeacherClassMappingDialog = ({ open, onClose, onSuccess, onError, gr
 };
 
 const CreateStudentClassMappingDialog = ({ open, onClose, onSuccess, onError, gradeData }) => {
-  const { control, handleSubmit, reset, getValues, setValue, watch } = useForm({
-    defaultValues: { student_mapper_data: [{ student_id: "", grade_id: "", section_id: "", roll_no: "" }] },
+  // State for filters
+  const [filterGradeId, setFilterGradeId] = useState("");
+  const [filterSectionId, setFilterSectionId] = useState("");
+  const [studentList, setStudentList] = useState([]);
+  const [isLoadingStudents, setIsLoadingStudents] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [initialFormData, setInitialFormData] = useState({});
+
+  // Form state
+  const { control, handleSubmit, reset, watch, getValues } = useForm({
+    defaultValues: { students_mapping: [] },
   });
-  const { fields, append, remove } = useFieldArray({ control, name: "student_mapper_data" });
-  const [studentsByRow, setStudentsByRow] = useState({});
-  const [isStudentFormValid, setIsStudentFormValid] = useState(false);
-  const studentAppendRef = useRef(0);
 
-  useEffect(() => { if (!open) { reset(); setStudentsByRow({}); } }, [open, reset]);
+  const studentsMappingWatch = watch("students_mapping");
 
-  const studentWatch = useWatch({ control, name: "student_mapper_data" });
+  // Reset on dialog open/close
   useEffect(() => {
-    // debug: inspect watched student rows
-    console.log("[StudentMapping] studentWatch:", studentWatch);
-    const valid = Array.isArray(studentWatch) && studentWatch.length > 0 && studentWatch.every(r => {
-      if (!r || !r.student_id || !r.grade_id || !r.section_id) return false;
-      // roll_no must be numeric and non-empty
-      return /^\d+$/.test(String(r.roll_no));
-    });
-    console.log("[StudentMapping] computed valid:", valid);
-    setIsStudentFormValid(valid);
-  }, [studentWatch, setIsStudentFormValid]);
-
-  const fetchStudentsForRow = async (gradeId, sectionId, rowIndex) => {
-    if (!gradeId || !sectionId) return;
-    try {
-      const res = await getAllStudentsData(gradeId, sectionId);
-      const list = res?.data?.student_details || [];
-      setStudentsByRow((prev) => ({ ...prev, [rowIndex]: list }));
-    } catch (err) {
-      console.error(err);
+    if (!open) {
+      reset({ students_mapping: [] });
+      setFilterGradeId("");
+      setFilterSectionId("");
+      setStudentList([]);
+      setSearchTerm("");
+      setInitialFormData({});
     }
+  }, [open, reset]);
+
+  // Available sections based on selected grade
+  const availableSections = filterGradeId
+    ? gradeData.find((g) => String(g.grade_id) === String(filterGradeId))?.section_list || []
+    : [];
+
+  // Auto-fetch students when grade + section filter changes
+  useEffect(() => {
+    if (!filterGradeId || !filterSectionId) {
+      setStudentList([]);
+      reset({ students_mapping: [] });
+      return;
+    }
+
+    const fetchStudents = async () => {
+      setIsLoadingStudents(true);
+      try {
+        const res = await getAllStudentsData(filterGradeId, filterSectionId);
+        const students = res?.data?.student_details || [];
+        setStudentList(students);
+
+        // Initialize form with student data
+        const mappedStudents = students.map((s) => ({
+          student_id: s.user_id || s.student_id || "",
+          student_name: s.name || s.student_name || "",
+          current_grade_id: filterGradeId,
+          current_section_id: filterSectionId,
+          current_roll_no: s.roll_no || "",
+          new_grade_id: filterGradeId,
+          new_section_id: filterSectionId,
+          new_roll_number: s.roll_no || "",
+        }));
+
+        // Store initial data to check for changes later
+        setInitialFormData(JSON.stringify(mappedStudents));
+        reset({ students_mapping: mappedStudents });
+      } catch (err) {
+        console.error("[StudentMapping] Error fetching students:", err);
+        setStudentList([]);
+        reset({ students_mapping: [] });
+      } finally {
+        setIsLoadingStudents(false);
+      }
+    };
+
+    fetchStudents();
+  }, [filterGradeId, filterSectionId, reset]);
+
+  // Check if form has changes
+  const hasChanges = () => {
+    const currentData = getValues("students_mapping");
+    return JSON.stringify(currentData) !== initialFormData;
   };
 
+  // Filter students based on search term
+  const filteredStudents = studentsMappingWatch.filter((student) =>
+    (student.student_name || "").toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const onSubmit = async (data) => {
-    const hasValid = Array.isArray(data.student_mapper_data) && data.student_mapper_data.some(r => r.student_id && r.grade_id && r.section_id);
-    if (!hasValid) {
-      if (onError) onError("Please add at least one valid student mapping (Student, Grade, Section).");
-      else showAlertMessage({ open: true, alertFor: "error", message: "Please add at least one valid student mapping (Student, Grade, Section)." });
+    if (!data.students_mapping || data.students_mapping.length === 0) {
+      const msg = "Please select a grade and section to fetch students.";
+      if (onError) onError(msg);
+      else showAlertMessage({ open: true, alertFor: "error", message: msg });
+      return;
+    }
+
+    // Filter out unchanged records
+    const changedMappings = data.students_mapping.filter((current, idx) => {
+      const original = studentList[idx];
+      return (
+        current.new_grade_id !== original.grade_id ||
+        current.new_section_id !== original.section_id ||
+        String(current.new_roll_number) !== String(original.roll_no)
+      );
+    });
+
+    if (changedMappings.length === 0) {
+      const msg = "No changes detected. Please modify at least one student mapping.";
+      if (onError) onError(msg);
+      else showAlertMessage({ open: true, alertFor: "error", message: msg });
       return;
     }
 
     try {
-      const res = await createStudentClassMapping({ student_mapper_data: data.student_mapper_data });
+      // Format payload to match expected API structure
+      const payload = {
+        student_mapper_data: changedMappings.map((s) => ({
+          student_id: s.student_id,
+          grade_id: s.new_grade_id,
+          section_id: s.new_section_id,
+          roll_no: s.new_roll_number,
+        })),
+      };
+
+      const res = await createStudentClassMapping(payload);
       if (res?.data?.status === "success") {
         onSuccess && onSuccess();
         onClose(true);
@@ -283,7 +362,7 @@ const CreateStudentClassMappingDialog = ({ open, onClose, onSuccess, onError, gr
         onClose(false);
       }
     } catch (err) {
-      console.error(err);
+      console.error("[StudentMapping] Submit error:", err);
       if (onError) onError(err?.message || "Failed to create student mapping");
       onClose(false);
     }
@@ -292,91 +371,286 @@ const CreateStudentClassMappingDialog = ({ open, onClose, onSuccess, onError, gr
   return (
     <BootstrapDialog open={open} onClose={() => onClose(false)}>
       <DialogTitle>
-        Create Student Class Mapping
+        Student Class Mapping
         <IconButton onClick={() => onClose(false)} sx={{ position: "absolute", right: 8, top: 8 }}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <DialogContent dividers>
-          {fields.map((field, index) => (
-            <Grid container spacing={2} alignItems="center" key={field.id} sx={{ mb: 1 }}>
-              <Grid item xs={12} md={3}>
-                <Controller name={`student_mapper_data.${index}.grade_id`} control={control} render={({ field: f }) => (
-                  <FormControl fullWidth>
-                    <InputLabel>Grade</InputLabel>
-                    <Select value={f.value || ""} label="Grade" onChange={(e) => { const val = e.target.value; f.onChange(val); setValue(`student_mapper_data.${index}.section_id`, "", { shouldValidate: true, shouldDirty: true }); setValue(`student_mapper_data.${index}.student_id`, "", { shouldValidate: true, shouldDirty: true }); setStudentsByRow((prev) => ({ ...prev, [index]: [] })); }}>
-                      {gradeData.map((g) => <MenuItem key={g.grade_id} value={g.grade_id}>{g.grade}</MenuItem>)}
-                    </Select>
-                  </FormControl>
-                )} />
+        <DialogContent dividers sx={{ p: 2 }}>
+          {/* ===== TOP FILTER SECTION ===== */}
+          <Box sx={{ mb: 3, pb: 2, borderBottom: "1px solid #e0e0e0" }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+              Select Grade & Section to Load Students
+            </Typography>
+            <Grid container spacing={2}>
+              {/* Grade Filter */}
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Grade</InputLabel>
+                  <Select
+                    value={filterGradeId}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFilterGradeId(val);
+                      setFilterSectionId(""); // Reset section
+                      setStudentList([]);
+                      reset({ students_mapping: [] });
+                    }}
+                    label="Grade"
+                  >
+                    <MenuItem value="">Select Grade</MenuItem>
+                    {gradeData.map((g) => (
+                      <MenuItem key={g.grade_id} value={g.grade_id}>
+                        {g.grade}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </Grid>
 
-              <Grid item xs={12} md={3}>
-                <Controller name={`student_mapper_data.${index}.section_id`} control={control} render={({ field: f }) => {
-                  const selectedGradeId = getValues(`student_mapper_data.${index}.grade_id`);
-                  const sections = gradeData.find((g) => g.grade_id === selectedGradeId)?.section_list || [];
-                  return (
-                    <FormControl fullWidth>
-                      <InputLabel>Section</InputLabel>
-                      <Select value={f.value || ""} label="Section" onChange={(e) => { const val = e.target.value; f.onChange(val); fetchStudentsForRow(selectedGradeId, val, index); }}>
-                        {sections.map((s) => <MenuItem key={s.section_id} value={s.section_id}>{s.section_name}</MenuItem>)}
-                      </Select>
-                    </FormControl>
-                  );
-                }} />
+              {/* Section Filter */}
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth disabled={!filterGradeId}>
+                  <InputLabel>Section</InputLabel>
+                  <Select
+                    value={filterSectionId}
+                    onChange={(e) => {
+                      setFilterSectionId(e.target.value);
+                    }}
+                    label="Section"
+                  >
+                    <MenuItem value="">Select Section</MenuItem>
+                    {availableSections.map((s) => (
+                      <MenuItem key={s.section_id} value={s.section_id}>
+                        {s.section_name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </Grid>
 
-              <Grid item xs={12} md={3}>
-                <Controller name={`student_mapper_data.${index}.student_id`} control={control} render={({ field: f }) => (
-                  <FormControl fullWidth>
-                    <InputLabel>Student</InputLabel>
-                    <Select value={f.value || ""} label="Student" onChange={(e) => f.onChange(e.target.value)}>
-                      {(studentsByRow[index] || []).map((s) => <MenuItem key={s.student_id} value={s.student_id}>{s.student_name}</MenuItem>)}
-                    </Select>
-                  </FormControl>
-                )} />
-              </Grid>
 
-              <Grid item xs={12} md={2}>
-                <Controller name={`student_mapper_data.${index}.roll_no`} control={control} render={({ field: f }) => (
-                  <TextField
-                    value={f.value || ""}
-                    onChange={(e) => f.onChange(e.target.value.replace(/[^0-9]/g, ""))}
-                    fullWidth
-                    label="Roll No"
-                    inputProps={{ inputMode: "numeric", pattern: "\\d*" }}
-                  />
-                )} />
-              </Grid>
-
-              <Grid item xs={12} md={1}>
-                <Box sx={{ display: "flex", gap: 1 }}>
-                  {index === fields.length - 1 && (
-                    <IconButton type="button" color="primary" size="small" onClick={() => {
-                      const now = Date.now();
-                      if (studentAppendRef.current && now - studentAppendRef.current < 300) return;
-                      studentAppendRef.current = now;
-                      append({ student_id: "", grade_id: "", section_id: "", roll_no: "" });
-                      setStudentsByRow((prev) => ({ ...prev, [fields.length]: [] }));
-                    }}>
-                      <AddBoxIcon />
-                    </IconButton>
-                  )}
-                  <IconButton type="button" color="error" size="small" onClick={() => remove(index)} disabled={fields.length === 1}>
-                    <RemoveCircleOutlineIcon />
-                  </IconButton>
-                </Box>
-              </Grid>
             </Grid>
-          ))}
+          </Box>
 
+          {/* ===== STUDENT LIST SECTION ===== */}
+          {studentList.length > 0 && (
+            <Box sx={{ mb: 2 }}>
+              {/* Search Bar */}
+              <TextField
+                fullWidth
+                placeholder="Search by student name..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                size="small"
+                sx={{ mb: 2 }}
+              />
+
+              {/* Student List */}
+              {filteredStudents.length > 0 ? (
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  {filteredStudents.map((student, index) => {
+                    const fieldIndex = studentsMappingWatch.findIndex(
+                      (s) => s.student_id === student.student_id
+                    );
+
+                    if (fieldIndex === -1) return null;
+
+                    return (
+                      <Box
+                        key={student.student_id}
+                        sx={{
+                          p: 2,
+                          border: "1px solid #e0e0e0",
+                          borderRadius: 1,
+                          backgroundColor: "#fafafa",
+                          "&:hover": { backgroundColor: "#f5f5f5" },
+                        }}
+                      >
+                        {/* Current Info Section */}
+                        <Grid container spacing={2} sx={{ mb: 2 }}>
+                          <Grid item xs={12}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "#1976d2" }}>
+                              📍 Current Grade
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={6} sm={3}>
+                            <Typography variant="caption" sx={{ color: "#666", display: "block" }}>
+                              Student Name
+                            </Typography>
+                            <Typography variant="body2">{student.student_name}</Typography>
+                          </Grid>
+                          <Grid item xs={6} sm={3}>
+                            <Typography variant="caption" sx={{ color: "#666", display: "block" }}>
+                              Current Grade
+                            </Typography>
+                            <Typography variant="body2">{student.current_grade_id || "-"}</Typography>
+                          </Grid>
+                          <Grid item xs={6} sm={3}>
+                            <Typography variant="caption" sx={{ color: "#666", display: "block" }}>
+                              Current Section
+                            </Typography>
+                            <Typography variant="body2">{student.current_section_id || "-"}</Typography>
+                          </Grid>
+                          <Grid item xs={6} sm={3}>
+                            <Typography variant="caption" sx={{ color: "#666", display: "block" }}>
+                              Roll Number
+                            </Typography>
+                            <Typography variant="body2">{student.current_roll_no || "-"}</Typography>
+                          </Grid>
+                        </Grid>
+
+                        {/* New Mapping Section */}
+                        <Grid container spacing={2}>
+                          <Grid item xs={12}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 600, color: "#d32f2f" }}>
+                              ✏️ New Mapping
+                            </Typography>
+                          </Grid>
+
+                          {/* New Grade */}
+                          <Grid item xs={12} sm={4}>
+                            <Controller
+                              name={`students_mapping.${fieldIndex}.new_grade_id`}
+                              control={control}
+                              render={({ field: f }) => {
+                                // Filter grades to show only current or above
+                                const currentGradeLevel = parseInt(student.current_grade_id) || 0;
+                                const availableNewGrades = gradeData.filter((g) => {
+                                  const gradeLevel = parseInt(g.grade_id) || 0;
+                                  return gradeLevel >= currentGradeLevel;
+                                });
+
+                                return (
+                                  <FormControl fullWidth size="small">
+                                    <InputLabel>New Grade</InputLabel>
+                                    <Select
+                                      value={f.value || ""}
+                                      onChange={(e) => {
+                                        f.onChange(e.target.value);
+                                        // Reset section when grade changes
+                                        control._formValues.students_mapping[fieldIndex].new_section_id = "";
+                                      }}
+                                      label="New Grade"
+                                    >
+                                      {availableNewGrades.map((g) => (
+                                        <MenuItem key={g.grade_id} value={g.grade_id}>
+                                          {g.grade}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                );
+                              }}
+                            />
+                          </Grid>
+
+                          {/* New Section */}
+                          <Grid item xs={12} sm={4}>
+                            <Controller
+                              name={`students_mapping.${fieldIndex}.new_section_id`}
+                              control={control}
+                              render={({ field: f }) => {
+                                const selectedNewGrade = getValues(
+                                  `students_mapping.${fieldIndex}.new_grade_id`
+                                );
+                                const newAvailableSections = selectedNewGrade
+                                  ? gradeData.find((g) => String(g.grade_id) === String(selectedNewGrade))
+                                      ?.section_list || []
+                                  : [];
+
+                                return (
+                                  <FormControl fullWidth size="small">
+                                    <InputLabel>New Section</InputLabel>
+                                    <Select
+                                      value={f.value || ""}
+                                      onChange={(e) => f.onChange(e.target.value)}
+                                      label="New Section"
+                                    >
+                                      {newAvailableSections.map((s) => (
+                                        <MenuItem key={s.section_id} value={s.section_id}>
+                                          {s.section_name}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
+                                );
+                              }}
+                            />
+                          </Grid>
+
+                          {/* New Roll Number */}
+                          <Grid item xs={12} sm={4}>
+                            <Controller
+                              name={`students_mapping.${fieldIndex}.new_roll_number`}
+                              control={control}
+                              render={({ field: f }) => (
+                                <TextField
+                                  value={f.value || ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value.replace(/[^0-9]/g, "");
+                                    f.onChange(val);
+                                  }}
+                                  fullWidth
+                                  label="New Roll No"
+                                  size="small"
+                                  inputProps={{ inputMode: "numeric" }}
+                                />
+                              )}
+                            />
+                          </Grid>
+                        </Grid>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              ) : (
+                <Typography variant="body2" sx={{ color: "#999", textAlign: "center", py: 2 }}>
+                  No students match your search
+                </Typography>
+              )}
+            </Box>
+          )}
+
+          {/* Empty State */}
+          {isLoadingStudents && (
+            <Box sx={{ textAlign: "center", py: 4 }}>
+              <Typography variant="body2" sx={{ color: "#999" }}>
+                Loading students...
+              </Typography>
+            </Box>
+          )}
+
+          {/* Empty State */}
+          {studentList.length === 0 && !isLoadingStudents && (filterGradeId || filterSectionId) && (
+            <Box sx={{ textAlign: "center", py: 4 }}>
+              <Typography variant="body2" sx={{ color: "#999" }}>
+                No students found for the selected grade and section
+              </Typography>
+            </Box>
+          )}
+
+          {/* No Filter Selected */}
+          {studentList.length === 0 && !filterGradeId && !filterSectionId && (
+            <Box sx={{ textAlign: "center", py: 4 }}>
+              <Typography variant="body2" sx={{ color: "#999" }}>
+                Select a grade and section above to load students
+              </Typography>
+            </Box>
+          )}
         </DialogContent>
 
-        <DialogActions>
+        <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => onClose(false)}>Cancel</Button>
-          <Button type="submit" variant="contained" disabled={!isStudentFormValid}>Save</Button>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={studentList.length === 0 || !hasChanges()}
+          >
+            Save Changes
+          </Button>
         </DialogActions>
       </form>
     </BootstrapDialog>
@@ -485,7 +759,7 @@ const TeacherStudentCallMapping = () => {
           <TeacherToolbarActions />
         </Box>
         <CommonMatTable columns={teacherColumns} data={teacherMappings} isLoading={loading} renderTopToolbar={() => (
-            <h1 style={{ fontSize: 18, marginTop: 10 }}>Teacher Class Mappings</h1>
+            <h1 style={{ fontSize: 18, marginTop: 10 }}>Teacher Mappings</h1>
           )} />
       </div>
 
@@ -494,7 +768,7 @@ const TeacherStudentCallMapping = () => {
           <StudentToolbarActions />
         </Box>
         <CommonMatTable columns={studentColumns} data={studentMappings} isLoading={loading} renderTopToolbar={() => (
-            <h1 style={{ fontSize: 18, marginTop: 10 }}>Student Class Mappings</h1>
+            <h1 style={{ fontSize: 18, marginTop: 10 }}>Student Mappings</h1>
           )} />
       </div>
 

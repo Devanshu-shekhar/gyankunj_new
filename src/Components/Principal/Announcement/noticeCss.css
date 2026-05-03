@@ -65,3 +65,98 @@ color: #5A6F88;
 letter-spacing: 0px;
 color: #5A6F88;
 }
+
+.announcementList {
+    margin-top: 20px;
+}
+
+.announcementCard {
+    border: 1px solid #E8EDF3;
+    border-radius: 16px;
+    background: #FFFFFF;
+    padding: 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.announcementCard:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.announcementTopRow {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.announcementToggle {
+    min-width: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.toggleIcon {
+    cursor: pointer;
+    color: #1976D2;
+    width: 24px;
+    height: 24px;
+}
+
+.announcementContent {
+    flex: 1 1 0;
+}
+
+.announcementHeaderRow {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.noticeMetaRow {
+    margin-top: 8px;
+}
+
+.noticeStatus {
+    font-size: 0.82rem;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.noticeStatus.published {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.noticeStatus.draft {
+    background: #FFF4E5;
+    color: #EF6C00;
+}
+
+.noticeActionRow {
+    display: inline-flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.publishLink {
+    padding: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.announcementDescription {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #EFF1F4;
+}
+
+.failureMessage {
+    color: #D32F2F;
+    font-weight: 700;
+}
