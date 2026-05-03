@@ -1,13 +1,15 @@
-import React, { useState } from "react";
-import { Button, Form, Modal, Row, Col } from "react-bootstrap";
+import React, { useEffect, useState } from "react";
+import { Button, Form, Modal, Row, Col, Alert } from "react-bootstrap";
 import Select from "react-select";
 import { saveNotice, publishNotice } from "../../../ApiClient";
 
-const AddAnnouncement = (props) => {
+const AddAnnouncement = ({ notice, show, onHide, closeAndLoad }) => {
   const [noticeDescription, setNoticeDescription] = useState("");
   const [noticeSubject, setNoticeSubject] = useState("");
   const [visibilityData, setVisibilityData] = useState("");
   const [saveNoticeDetails, setSaveNoticeDetails] = useState({});
+  const [statusMessage, setStatusMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const userDetails = JSON.parse(localStorage.getItem("UserData"));
 
@@ -20,119 +22,178 @@ const AddAnnouncement = (props) => {
     { value: "all", label: "Everyone" },
   ];
 
-  const saveNoticeData = () => {
+  useEffect(() => {
+    if (notice) {
+      setNoticeSubject(notice.notice_subject || "");
+      setNoticeDescription(notice.notice_data || "");
+      setSaveNoticeDetails({ notice_id: notice.notice_id });
+      setVisibilityData("");
+      setStatusMessage("");
+    } else {
+      setNoticeSubject("");
+      setNoticeDescription("");
+      setVisibilityData("");
+      setSaveNoticeDetails({});
+      setStatusMessage("");
+    }
+  }, [notice, show]);
+
+  const saveNoticeData = async () => {
+    setIsLoading(true);
     const data = {
       user_id: userDetails?.user_id,
       data: noticeDescription,
       notice_subject: noticeSubject,
     };
-    saveNotice(data)
-      .then((res) => {
-        setSaveNoticeDetails(res.data);
-      })
-      .catch((err) => console.log("Notice Err", err));
+
+    try {
+      const res = await saveNotice(data);
+      setSaveNoticeDetails(res.data);
+      setStatusMessage("Notice saved successfully. Select visibility to publish.");
+    } catch (err) {
+      console.error("Notice Err", err);
+      setStatusMessage("Unable to save notice. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const publishNoticeData = () => {
+  const publishNoticeData = async () => {
+    const noticeId = notice?.notice_id || saveNoticeDetails?.notice_id;
+    if (!noticeId) {
+      setStatusMessage("Please save the notice before publishing.");
+      return;
+    }
+
+    setIsLoading(true);
     const data = {
-      notice_id: saveNoticeDetails.notice_id,
+      notice_id: noticeId,
       visibility: visibilityData,
     };
-    publishNotice(data)
-      .then((res) => {
-        console.log("Publish Notice Res", res.data);
-        closeModal();
-      })
-      .catch((err) => console.log("Notice Err", err));
+
+    try {
+      const res = await publishNotice(data);
+      console.log("Publish Notice Res", res.data);
+      setStatusMessage("Notice published successfully.");
+      closeModal();
+    } catch (err) {
+      console.error("Notice Err", err);
+      setStatusMessage("Unable to publish notice. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const closeModal = () => {
-    props.onHide();
+    onHide();
+    closeAndLoad();
   };
 
   return (
     <>
       <Modal
         className="ModalBody"
-        {...props}
+        show={show}
+        onHide={closeModal}
         size="md"
         aria-labelledby="contained-modal-title-vcenter"
         centered
       >
         <Modal.Header>
-          <Modal.Title>Add Notice</Modal.Title>
+          <Modal.Title>{notice ? "Publish Notice" : "Add Notice"}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
-            <Row style={{ marginBottom: "42px" }}>
+            <Row className="mb-3">
               <Col md={12}>
-                <Form.Group
-                  className="mb-3"
-                  controlId="exampleForm.ControlInput1"
-                >
+                <Form.Group controlId="noticeSubject">
                   <Form.Label>Notice Subject</Form.Label>
                   <Form.Control
                     type="text"
-                    placeholder="Notice Subject"
+                    placeholder="Enter notice subject"
                     onChange={(e) => setNoticeSubject(e.target.value)}
                     value={noticeSubject}
+                    disabled={Boolean(notice)}
                   />
                 </Form.Group>
               </Col>
             </Row>
-            <Row style={{ marginBottom: "42px" }}>
+            <Row className="mb-3">
               <Col md={12}>
-                <Form.Group
-                  className="mb-3"
-                  controlId="exampleForm.ControlTextarea1"
-                >
+                <Form.Group controlId="noticeDescription">
                   <Form.Label>Description</Form.Label>
                   <Form.Control
                     as="textarea"
-                    rows={3}
-                    placeholder="Add Description"
+                    rows={4}
+                    placeholder="Write notice details"
                     value={noticeDescription}
                     onChange={(e) => setNoticeDescription(e.target.value)}
+                    disabled={Boolean(notice)}
                   />
                 </Form.Group>
               </Col>
             </Row>
-            <Row>
-              {saveNoticeDetails?.notice_id && (
-                <Col md={12}>
-                  <Select
-                    placeholder="Select Visibility"
-                    options={visibilityOptions}
-                    isSearchable={false}
-                    onChange={(e) => setVisibilityData(e.value)}
-                  />
-                </Col>
-              )}
+
+            <Row className="mb-3">
+              <Col md={12}>
+                <Form.Label>Visibility</Form.Label>
+                <Select
+                  placeholder="Select audience"
+                  options={visibilityOptions}
+                  isSearchable={false}
+                  value={visibilityOptions.find((opt) => opt.value === visibilityData) || null}
+                  onChange={(e) => setVisibilityData(e?.value)}
+                />
+              </Col>
             </Row>
+
+            {statusMessage && (
+              <Row className="mb-3">
+                <Col md={12}>
+                  <Alert variant="info" className="mb-0">
+                    {statusMessage}
+                  </Alert>
+                </Col>
+              </Row>
+            )}
+
+            {notice && (
+              <Row className="mb-3">
+                <Col md={12}>
+                  <div className="text-muted">
+                    This notice is already saved. Choose visibility and publish it.
+                  </div>
+                </Col>
+              </Row>
+            )}
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          {/* <Button variant="outline-primary" style={{ alignItems: "center" }}>
-            Reset
-          </Button> */}
+          {!notice && (
+            <Button
+              disabled={
+                !noticeSubject ||
+                !noticeDescription ||
+                Boolean(saveNoticeDetails?.notice_id)
+              }
+              variant="primary"
+              onClick={saveNoticeData}
+            >
+              {isLoading ? "Saving..." : "Save"}
+            </Button>
+          )}
           <Button
             disabled={
-              saveNoticeDetails?.notice_id ||
-              !(noticeDescription && noticeSubject)
+              !visibilityData ||
+              isLoading ||
+              (!notice && !saveNoticeDetails?.notice_id)
             }
-            variant="outline-primary"
-            onClick={saveNoticeData}
-          >
-            Save
-          </Button>
-          <Button
-            disabled={!saveNoticeDetails?.notice_id}
-            variant="outline-primary"
+            variant="success"
             onClick={publishNoticeData}
           >
-            Publish
+            {isLoading ? "Publishing..." : "Publish"}
           </Button>
-          <Button variant="outline-primary" onClick={closeModal}>
+          <Button variant="secondary" onClick={closeModal}>
             Close
           </Button>
         </Modal.Footer>

@@ -131,15 +131,17 @@ const FeeDetails = ({ isParentView = false }) => {
                 </Typography>
               </Grid>
             </Grid>
-            <Box marginTop={2}>
-              <Button
-                variant="contained"
-                color="secondary"
-                onClick={handleMakePayment}
-              >
-                Make Payment
-              </Button>
-            </Box>
+            {feeDetails.total_outstanding > 0 && (
+              <Box marginTop={2}>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={handleMakePayment}
+                >
+                  Make Payment
+                </Button>
+              </Box>
+            )}
           </CardContent>
         </Card>
       )}

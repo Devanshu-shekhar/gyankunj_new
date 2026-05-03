@@ -163,10 +163,6 @@ const TeacherStudentLeaveApplicationsList = (props) => {
             primary_teacher_id: assignTeacherDialog.leave.user_id,
             substitute_teacher_id: teacherId,
             substitution_date: date,
-            grade_id: substituteTeachers[date].grade_id,
-            subject_id: substituteTeachers[date].subject_id,
-            section_id: substituteTeachers[date].section_id,
-            period_id: period.period_id,
             day_id: substituteTeachers[date].day_id,
           });
         }

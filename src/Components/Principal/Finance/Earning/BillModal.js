@@ -22,10 +22,10 @@ const BillModal = ({ open, onClose, paymentData }) => {
     const [billDetails, setBillDetails] = useState(null);
 
     const fetchBillData = useCallback(async () => {
-        if (!paymentData?.id) return;
+        if (!paymentData?.payment_id) return;
         setLoading(true);
         try {
-            const payload = { payment_ids: [44] };
+            const payload = { payment_ids: [paymentData.payment_id] };
             const response = await fetchBillDetails(payload);
 
             if (response?.data?.bill_details?.length > 0) {

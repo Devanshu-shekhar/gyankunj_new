@@ -125,13 +125,18 @@ const StudentInfoForm = ({ control, metadataList, watch, reset, setValue }) => {
                           select
                           SelectProps={{
                             multiple: true,
-                            renderValue: (selected) =>
-                              metadataList.languages
+                            renderValue: (selected) => {
+                              if (!Array.isArray(selected)) {
+                                return "";
+                              }
+                              return metadataList.languages
                                 .filter((option) => selected.includes(option.id))
                                 .map((option) => option.name)
-                                .join(", "),
+                                .join(", ");
+                            },
                           }}
-                          value={field?.value ?? []}
+                          value={Array.isArray(field?.value) ? field.value : []}
+                        
                         >
                           {metadataList.languages.map((option) => (
                             <MenuItem key={option.id} value={option.id}>

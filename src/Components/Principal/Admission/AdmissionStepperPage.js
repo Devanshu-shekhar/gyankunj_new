@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Box,
   Stepper,
@@ -33,50 +33,35 @@ const AdmissionStepperPage = () => {
   const navigate = useNavigate();
   const [paymentModes, setPaymentModes] = useState([]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  let selectedUserDetails = {};
-  let metadataList = {};
-  let feesStructuresList = [];
-  let role_id = null;
+  const { selectedUserDetails, metadataList, feesStructuresList, role_id } = useMemo(() => {
+    let selected = {};
+    let metadata = {};
+    let fees = [];
+    let role = null;
 
-  const fromStorage = localStorage.getItem("admission_metadata");
-  if (fromStorage) {
-    try {
-      const parsed = JSON.parse(fromStorage);
-      selectedUserDetails = parsed.selectedUserDetails || {};
-      metadataList = parsed.metadataList || {};
-      feesStructuresList = parsed.feesStructuresList || [];
-      role_id = parsed.role_id || null;
-    } catch (err) {
-      console.error("Failed to parse admission_metadata from localStorage", err);
+    const fromStorage = localStorage.getItem("admission_metadata");
+    if (fromStorage) {
+      try {
+        const parsed = JSON.parse(fromStorage);
+        selected = parsed.selectedUserDetails || {};
+        metadata = parsed.metadataList || {};
+        fees = parsed.feesStructuresList || [];
+        role = parsed.role_id || null;
+      } catch (err) {
+        console.error("Failed to parse admission_metadata from localStorage", err);
+      }
     }
-  }
 
-  useEffect(() => {
-    fetchPaymentModesList();
+    return {
+      selectedUserDetails: selected,
+      metadataList: metadata,
+      feesStructuresList: fees,
+      role_id: role,
+    };
   }, []);
 
   useEffect(() => {
-    // Parse query params
-    const queryParams = (() => {
-      const rawQuery = location.search.replace("?", "").split(";");
-      const parsedParams = {};
-      rawQuery.forEach((item) => {
-        const [key, value] = item.split("=");
-        parsedParams[key] = decodeURIComponent(value);
-      });
-      return parsedParams;
-    })();
-
-    const userId = queryParams.user_id;
-    const totalAdmissionCharge = queryParams.total_admission_charge;
-    if (userId && totalAdmissionCharge) {
-      setValueSecond("user_id", userId);
-      setValueThird("user_id", userId);
-      setValueSecond("total_admission_charge", totalAdmissionCharge);
-      setValueThird("transaction_amount", totalAdmissionCharge);
-      setActiveStep(1);
-    }
+    fetchPaymentModesList();
   }, []);
 
   const fetchPaymentModesList = async () => {
@@ -169,19 +154,135 @@ const AdmissionStepperPage = () => {
     },
   });
 
+  useEffect(() => {
+    // Parse query params
+    const queryParams = (() => {
+      const rawQuery = location.search.replace("?", "").split(";");
+      const parsedParams = {};
+      rawQuery.forEach((item) => {
+        const [key, value] = item.split("=");
+        parsedParams[key] = decodeURIComponent(value);
+      });
+      return parsedParams;
+    })();
+
+    const userId = queryParams.user_id;
+    const totalAdmissionCharge = queryParams.total_admission_charge;
+    if (userId && totalAdmissionCharge) {
+      setValueSecond("user_id", userId);
+      setValueThird("user_id", userId);
+      setValueSecond("total_admission_charge", totalAdmissionCharge);
+      setValueThird("transaction_amount", totalAdmissionCharge);
+      setActiveStep(1);
+    }
+  }, [location.search, setValueSecond, setValueThird]);
+
   const isEditMode = Object.keys(selectedUserDetails).length > 0;
+
+  // Helper function to normalize form data from API response
+  const normalizeFormData = useCallback((data) => {
+    if (!data) return null;
+
+    const normalized = { ...data };
+
+    const mapSelectValue = (value, options, allowArray = false) => {
+      if (!options || !Array.isArray(options) || options.length === 0) {
+        return value;
+      }
+
+      const normalizeSingle = (incoming) => {
+        if (incoming === null || incoming === undefined || incoming === "") {
+          return "";
+        }
+
+        const stringValue = String(incoming).trim();
+        const matchById = options.find((option) => String(option.id) === stringValue);
+        if (matchById) return matchById.id;
+
+        const matchByName = options.find((option) => String(option.name).trim().toLowerCase() === stringValue.toLowerCase());
+        if (matchByName) return matchByName.id;
+
+        return incoming;
+      };
+
+      if (allowArray) {
+        if (!Array.isArray(value)) {
+          return [];
+        }
+        return value.map(normalizeSingle).filter((item) => item !== "" && item !== null && item !== undefined);
+      }
+
+      return normalizeSingle(value);
+    };
+
+    // Normalize select fields with metadata options
+    normalized.gender = mapSelectValue(normalized.gender, metadataList.genders);
+    normalized.country = mapSelectValue(normalized.country, metadataList.nationalities);
+    normalized.category = mapSelectValue(normalized.category, metadataList.categories);
+    normalized.current_class = mapSelectValue(normalized.current_class, metadataList.grades);
+    normalized.applying_for_class = mapSelectValue(normalized.applying_for_class, metadataList.grades);
+    normalized.mode_of_instruction = mapSelectValue(normalized.mode_of_instruction, metadataList.languages);
+    normalized.father_nationality = mapSelectValue(normalized.father_nationality, metadataList.nationalities);
+    normalized.mother_nationality = mapSelectValue(normalized.mother_nationality, metadataList.nationalities);
+
+    // Parse languages_known from string format "{6,7}" to array [6, 7]
+    if (normalized.languages_known) {
+      if (typeof normalized.languages_known === "string") {
+        const cleaned = normalized.languages_known.replace(/[{}]/g, "").trim();
+        if (cleaned) {
+          normalized.languages_known = cleaned.split(",").map((val) => {
+            const num = parseInt(val.trim(), 10);
+            return isNaN(num) ? val.trim() : num;
+          });
+        } else {
+          normalized.languages_known = [];
+        }
+      } else if (!Array.isArray(normalized.languages_known)) {
+        normalized.languages_known = [];
+      }
+    } else {
+      normalized.languages_known = [];
+    }
+
+    // Convert string boolean values to actual booleans
+    const booleanFields = ["any_known_illness", "school_transport_required"];
+    booleanFields.forEach((field) => {
+      if (field in normalized) {
+        const value = normalized[field];
+        if (typeof value === "string") {
+          normalized[field] = value.toLowerCase() === "true";
+        } else if (value === null || value === undefined) {
+          normalized[field] = false;
+        }
+      }
+    });
+
+    // Ensure numeric fields are numbers
+    const numericStringShouldBeFields = ["father_aadhar_number", "father_phone", "mother_phone"];
+    numericStringShouldBeFields.forEach((field) => {
+      if (field in normalized && normalized[field]) {
+        if (typeof normalized[field] === "string") {
+          const num = parseInt(normalized[field], 10);
+          normalized[field] = isNaN(num) ? normalized[field] : num;
+        }
+      }
+    });
+
+    return normalized;
+  }, [metadataList]);
 
   useEffect(() => {
     if (isEditMode && selectedUserDetails?.user_id) {
+      const normalizedData = normalizeFormData(selectedUserDetails);
       reset({
-        ...selectedUserDetails,
-        date_of_birth: selectedUserDetails.date_of_birth ? dayjs(selectedUserDetails.date_of_birth) : null,
-        date_of_joining: selectedUserDetails.date_of_joining ? dayjs(selectedUserDetails.date_of_joining) : null,
-        father_dob: selectedUserDetails.father_dob ? dayjs(selectedUserDetails.father_dob) : null,
-        mother_dob: selectedUserDetails.mother_dob ? dayjs(selectedUserDetails.mother_dob) : null,
+        ...normalizedData,
+        date_of_birth: normalizedData.date_of_birth ? dayjs(normalizedData.date_of_birth) : null,
+        date_of_joining: normalizedData.date_of_joining ? dayjs(normalizedData.date_of_joining) : null,
+        father_dob: normalizedData.father_dob ? dayjs(normalizedData.father_dob) : null,
+        mother_dob: normalizedData.mother_dob ? dayjs(normalizedData.mother_dob) : null,
       });
     }
-  }, [selectedUserDetails, isEditMode, reset]);
+  }, [selectedUserDetails, isEditMode, reset, normalizeFormData]);
 
   const onSubmit = (data) => {
     const payload = {

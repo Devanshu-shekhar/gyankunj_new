@@ -26,16 +26,17 @@ const FeeDetailsForm = ({ control, watch, setValue, feesStructuresList }) => {
 
   const showEmi = deposited + discount < totalCharge;
 
+  const numberOfInstallments = Number(watch("number_of_installments") || 0);
+
   useEffect(() => {
-  if (isEmiEnabled && showEmi) {
-    const totalEmi = Math.max(totalCharge - deposited - discount, 0);
-    const installments = Number(watch("number_of_installments") || 0);
-    if (installments > 0) {
-      const perInstallment = totalEmi / installments;
-      setValue("installment_amount", parseFloat(perInstallment.toFixed(2)));
+    if (isEmiEnabled && showEmi) {
+      const totalEmi = Math.max(totalCharge - deposited - discount, 0);
+      if (numberOfInstallments > 0) {
+        const perInstallment = totalEmi / numberOfInstallments;
+        setValue("installment_amount", parseFloat(perInstallment.toFixed(2)));
+      }
     }
-  }
-}, [watch("number_of_installments")]);
+  }, [isEmiEnabled, showEmi, totalCharge, deposited, discount, numberOfInstallments, setValue]);
 
   // Reset EMI fields if EMI is disabled
   useEffect(() => {
@@ -83,6 +84,7 @@ const FeeDetailsForm = ({ control, watch, setValue, feesStructuresList }) => {
             render={({ field }) => (
               <TextField
                 {...field}
+                value={field.value ?? ""}
                 label="User ID"
                 fullWidth
                 margin="normal"
@@ -100,6 +102,7 @@ const FeeDetailsForm = ({ control, watch, setValue, feesStructuresList }) => {
             render={({ field }) => (
               <TextField
                 {...field}
+                value={field.value ?? ""}
                 type="number"
                 label="Total Admission Charge"
                 fullWidth
@@ -117,6 +120,7 @@ const FeeDetailsForm = ({ control, watch, setValue, feesStructuresList }) => {
             render={({ field }) => (
               <TextField
                 {...field}
+                value={field.value ?? ""}
                 type="number"
                 label="Discounted Amount"
                 fullWidth
@@ -136,6 +140,7 @@ const FeeDetailsForm = ({ control, watch, setValue, feesStructuresList }) => {
             render={({ field }) => (
               <TextField
                 {...field}
+                value={field.value ?? ""}
                 type="number"
                 label="Payable Amount"
                 fullWidth
@@ -177,6 +182,7 @@ const FeeDetailsForm = ({ control, watch, setValue, feesStructuresList }) => {
                   render={({ field }) => (
                     <TextField
                       {...field}
+                      value={field.value ?? ""}
                       type="number"
                       label="Deposited Fees"
                       fullWidth
@@ -211,6 +217,7 @@ const FeeDetailsForm = ({ control, watch, setValue, feesStructuresList }) => {
                     </Box>
                     <TextField
                       {...field}
+                      value={field.value ?? ""}
                       type="number"
                       fullWidth
                       margin="dense"
@@ -239,6 +246,7 @@ const FeeDetailsForm = ({ control, watch, setValue, feesStructuresList }) => {
                     </Box>
                     <TextField
                       {...field}
+                      value={field.value ?? ""}
                       select
                       fullWidth
                       margin="dense"
@@ -272,6 +280,7 @@ const FeeDetailsForm = ({ control, watch, setValue, feesStructuresList }) => {
                     </Box>
                     <TextField
                       {...field}
+                      value={field.value ?? ""}
                       type="number"
                       fullWidth
                       margin="dense"
