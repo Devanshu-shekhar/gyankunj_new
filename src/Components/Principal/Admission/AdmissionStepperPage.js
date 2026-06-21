@@ -13,11 +13,12 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { showAlertMessage } from "../../AlertMessage";
 import {
-  fetchPaymentModes,
-  makeDepositPayment,
-  saveAdmissionFeesInfo,
-  updateUserInfo,
-} from "../../../ApiClient";
+    fetchPaymentModes,
+    makeDepositPayment,
+    saveAdmissionFeesInfo,
+    updateUserInfo,
+    fetchFeesStructuresList,
+  } from "../../../ApiClient";
 import dayjs from "dayjs";
 import StudentInfoForm from "./StudentInfoForm";
 import FeeDetailsForm from "./FeeDetailsForm";
@@ -35,7 +36,13 @@ const AdmissionStepperPage = () => {
 
   const { selectedUserDetails, metadataList, feesStructuresList, role_id } = useMemo(() => {
     let selected = {};
-    let metadata = {};
+    let metadata = {
+      categories: [],
+      languages: [],
+      nationalities: [],
+      genders: [],
+      grades: [],
+    };
     let fees = [];
     let role = null;
 
@@ -44,7 +51,7 @@ const AdmissionStepperPage = () => {
       try {
         const parsed = JSON.parse(fromStorage);
         selected = parsed.selectedUserDetails || {};
-        metadata = parsed.metadataList || {};
+        metadata = { ...metadata, ...(parsed.metadataList || {}) };
         fees = parsed.feesStructuresList || [];
         role = parsed.role_id || null;
       } catch (err) {
@@ -59,6 +66,24 @@ const AdmissionStepperPage = () => {
       role_id: role,
     };
   }, []);
+
+  // Local state for fees structures so we can fetch when not provided via localStorage
+  const [localFeesStructures, setLocalFeesStructures] = useState(feesStructuresList || []);
+
+  useEffect(() => {
+    const ensureFees = async () => {
+      if (!localFeesStructures || localFeesStructures.length === 0) {
+        try {
+          const res = await fetchFeesStructuresList();
+          const fees = res?.data?.fees_structure_info || [];
+          setLocalFeesStructures(fees);
+        } catch (err) {
+          console.error("Failed to fetch fees structures in AdmissionStepperPage:", err);
+        }
+      }
+    };
+    ensureFees();
+  }, [localFeesStructures]);
 
   useEffect(() => {
     fetchPaymentModesList();
@@ -302,16 +327,29 @@ const AdmissionStepperPage = () => {
         setShowAlert(isSuccess ? "success" : "error");
 
         if (isSuccess) {
-          const match = res?.data.message?.match(/afs\/\d+\/\d+\/\d+/);
-          const studentId = match ? match[0] : null;
-          setValueSecond("user_id", studentId);
-          setValueThird("user_id", studentId);
+          // Extract student id from different possible response shapes
+          let studentId = null;
+          try {
+            const msg = res?.data?.message;
+            if (typeof msg === "string") {
+              const match = msg.match(/afs\/\d+\/\d+\/\d+/);
+              if (match) studentId = match[0];
+            }
+          } catch (e) {
+            // ignore
+          }
+          studentId = studentId || res?.data?.user_id || res?.data?.student_id || res?.data?.data?.user_id || null;
+          setValueSecond("user_id", studentId || "");
+          setValueThird("user_id", studentId || "");
 
-          const totalAdmissionCharge = feesStructuresList.reduce(
-            (sum, item) =>
-              item.fee_frequency_id === 2 && item.fee_occurrence_id === 1
-                ? sum + item.charge
-                : sum,
+          const totalAdmissionCharge = (localFeesStructures || []).reduce(
+            (sum, item) => {
+              // Include fees intended for new admission (fee_occurrence_id === 1)
+              if (!item) return sum;
+              const isNewAdmission = item.fee_occurrence_id === 1;
+              const charge = Number(item.charge) || 0;
+              return isNewAdmission ? sum + charge : sum;
+            },
             0
           );
 
@@ -421,7 +459,7 @@ const AdmissionStepperPage = () => {
                 control={controlSecond}
                 watch={watchSecond}
                 setValue={setValueSecond}
-                feesStructuresList={feesStructuresList}
+                feesStructuresList={localFeesStructures}
               />
             ) : (
               <CollectDepositForm
