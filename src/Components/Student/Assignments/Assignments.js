@@ -110,7 +110,7 @@ const StudentAssignments = () => {
           let label = "";
           if (row.assignment_status === "New") label = "Start";
           else if (
-            ["In Progress", "Inprogress"].includes(row.assignment_status)
+            ["In Progress", "Inprogress", "In_Progress"].includes(row.assignment_status)
           )
             label = "Continue";
           else if (row.assignment_status === "Submitted")

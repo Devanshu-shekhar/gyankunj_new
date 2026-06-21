@@ -65,14 +65,12 @@ const FeeDetailsForm = ({ control, watch, setValue, feesStructuresList }) => {
 
       <div className="d-flex gap-4">
         {feesStructuresList?.length > 0 &&
-          feesStructuresList.map(
-            (item) =>
-              item.fee_frequency_id === 2 &&
-              item.fee_occurrence_id === 1 && (
-                <div key={item.fee_type_name}>
-                  <strong>{item.fee_type_name}</strong> : {item.charge}
-                </div>
-              )
+          feesStructuresList.map((item) =>
+            item?.fee_occurrence_id === 1 ? (
+              <div key={item.fee_type_name}>
+                <strong>{item.fee_type_name}</strong> : {item.charge}
+              </div>
+            ) : null
           )}
       </div>
 

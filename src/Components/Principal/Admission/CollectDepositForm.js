@@ -20,7 +20,11 @@ const CollectDepositForm = ({
 
   // Ensure transaction_amount is always synced with deposited_fees
   useEffect(() => {
-    setValue("transaction_amount", depositAmount || 0);
+    // Only overwrite transaction_amount when a deposited amount > 0 is provided.
+    // This preserves the total admission charge which may have been set earlier.
+    if (Number(depositAmount) > 0) {
+      setValue("transaction_amount", Number(depositAmount));
+    }
   }, [depositAmount, setValue]);
 
   return (
